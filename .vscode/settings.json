@@ -1,11 +1,11 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
-  "idf.espIdfPathWin": "C:\\Users\\lizzy\\esp\\v5.5.1\\esp-idf",
-  "idf.pythonInstallPath": "C:\\Users\\lizzy\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.espIdfPathWin": "C:\\Users\\simon\\esp\\v5.5.1\\esp-idf",
+  "idf.pythonInstallPath": "C:\\Users\\simon\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
   "idf.openOcdConfigs": [
     "board/esp32-wrover-kit-3.3v.cfg"
   ],
-  "idf.toolsPathWin": "C:\\Users\\lizzy\\.espressif",
+  "idf.toolsPathWin": "C:\\Users\\simon\\.espressif",
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32"
   },
@@ -14,5 +14,7 @@
     "--background-index",
     "--query-driver=C:\\Users\\lizzy\\.espressif\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32-elf-gcc.exe",
     "--compile-commands-dir=${workspaceFolder}\\build"
-  ]
+  ],
+  "idf.flashType": "UART",
+  "idf.portWin": "COM4"
 }
