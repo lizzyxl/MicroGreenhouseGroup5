@@ -4,22 +4,28 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-static const char *TAG = "LDR";
+#define TAG "LDR"
 
 void app_main(void)
 {
+    // Initialize the LDR sensor before using
     ldr_init();
 
-    while(1) {
-        int raw = ldr_read_raw();
-        float voltage = ldr_read_voltage();
+    // Keep reading sensor values
+    while (1)
+    {
+        int raw = ldr_read_raw();           // get raw ADC value
+        float voltage = ldr_read_voltage(); // convert to voltage
 
-        if (raw >=0) {
+        // If reading was successful, log the values
+        if (raw >= 0) {
             ESP_LOGI(TAG, "LDR Raw: %d, Voltage: %.2f V", raw, voltage);
-        } else {
+        }
+        else {
             ESP_LOGE(TAG, "Error reading LDR values");
-        }    
-        
+        }
+
+        // Delay for a second before next reading
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
