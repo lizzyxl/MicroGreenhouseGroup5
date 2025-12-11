@@ -1,50 +1,60 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "fan.h"
+#include <driver/gpio.h>
 #include "esp_log.h"
 
-#define TEMP_INTERVAL_MS 1000
+#include "pump.h"
+#include "uart_pc.h"
 
-extern QueueHandle_t temp_queue;
-extern volatile bool fan_state;
+extern QueueHandle_t moisture_queue;
 
-static void simulated_temp_sensor_task(void *arg) {
-    static float simulated_temp = 20;
-    float temp_change;
+#define MEASUREMENT_INTERVAL_MS 1000
+#define TAG "MAIN"
+
+static void simulated_moist_sensor_task(void *arg) {
+    float simulated_moist = 40;
     
     while (1) {
-        if (fan_state) {
-            temp_change = -1.5f + (rand() % 11) * 0.2f;
+        if (pump_state) {
+            simulated_moist += -1.0f + (rand() % 6);
         } else {
-            temp_change = -0.5f + (rand() % 11) * 0.2f;
+            simulated_moist += -4.0f + (rand() % 6);
         }
         
-        simulated_temp += temp_change;
-        if (simulated_temp > 35.0f) simulated_temp = 35.0f;
-        if (simulated_temp < 10.0f) simulated_temp = 10.0f;
-        
-        temp_status_t status = {
-            .temperature = simulated_temp
+        if (simulated_moist > 100.0f) simulated_moist = 100.0f;
+        if (simulated_moist < 20.0f) simulated_moist = 20.0f;
+
+        moisture_status_t status = {
+            .moisture = simulated_moist
         };
-        xQueueSend(temp_queue, &status, 0);
-          
-        ESP_LOGI("MAIN", "Sensor: %.1f°C (fan=%s)", simulated_temp, 
-                fan_state ? "ON" : "OFF");
+
+        if (xQueueSend(moisture_queue, &status, pdMS_TO_TICKS(100)) == pdTRUE) {
+            ESP_LOGI(TAG, "Sensor: %.1f %% (pump=%s, water_empty=%s)", 
+                    simulated_moist,
+                    pump_state ? "ON" : "OFF",
+                    water_empty ? "YES" : "NO");
+        }
         
-        vTaskDelay(pdMS_TO_TICKS(TEMP_INTERVAL_MS));
+        vTaskDelay(pdMS_TO_TICKS(MEASUREMENT_INTERVAL_MS));
     }
 }
 
 void app_main(void) {
-    ESP_LOGI("MAIN", "Starting Fan Demo");
+    ESP_LOGI(TAG, "Starting Greenhouse Pump Demo");
     
-    temp_queue = xQueueCreate(10, sizeof(temp_status_t));
+    moisture_queue = xQueueCreate(10, sizeof(moisture_status_t));
+    if (moisture_queue == NULL) {
+        ESP_LOGE(TAG, "Failed to create queue!");
+        return;
+    }
     
-    fan_init();
+    uart_pc_init();
+    pump_init();
     
-    xTaskCreate(simulated_temp_sensor_task, "temp_sensor", 4096, NULL, 1, NULL);
-    fan_create_task();
+    uart_pc_create_task();
+    xTaskCreate(simulated_moist_sensor_task, "simulated_moist_sensor", 4096, NULL, 1, NULL);
+    pump_create_task();
     
-    ESP_LOGI("MAIN", "All tasks started");
+    ESP_LOGI(TAG, "All tasks started successfully!");
 }
