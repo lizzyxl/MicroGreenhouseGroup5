@@ -21,6 +21,8 @@
 build/
 dist/
 cmake-build-*/
+.devcontainer/cache/
+
 
 # IDE and Editor files
 .vscode/
@@ -41,4 +43,3 @@ Makefile
 
 # Misc
 *.log
-sdkconfig
