@@ -8,7 +8,7 @@ static bool cali_enabled = false;
 void ldr_init(void)
 {
     adc_oneshot_unit_init_cfg_t init_config = {
-        .unit_id = ADC_UNIT_1,
+        .unit_id = ADC_UNIT_2,
         .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
     adc_oneshot_new_unit(&init_config, &adc_handle);
@@ -31,7 +31,7 @@ void ldr_init(void)
 
 int ldr_read_raw(void) {
     int raw = 0;
-    if (adc_oneshot_read(adc_handle, ADC_CHANNEL_3, &raw) == ESP_OK) {
+    if (adc_oneshot_read(adc_handle, ADC_CHANNEL_2, &raw) == ESP_OK) {
         return raw;
     }
     return -1;

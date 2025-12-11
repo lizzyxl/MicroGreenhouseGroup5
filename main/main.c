@@ -2,6 +2,9 @@
 #include "light_sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_log.h"
+
+static const char *TAG = "LDR";
 
 void app_main(void)
 {
@@ -12,11 +15,11 @@ void app_main(void)
         float voltage = ldr_read_voltage();
 
         if (raw >=0) {
-            printf("LDR Raw: %d, Voltage: %.2f V\n", raw, voltage);
+            ESP_LOGI(TAG, "LDR Raw: %d, Voltage: %.2f V", raw, voltage);
         } else {
-            printf("Error reading LDR values\n");
-        }
+            ESP_LOGE(TAG, "Error reading LDR values");
+        }    
+        
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
-
-    vTaskDelay(pdMS_TO_TICKS(1000));
 }
