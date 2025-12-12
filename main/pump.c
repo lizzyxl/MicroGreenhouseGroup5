@@ -8,7 +8,6 @@
 
 #define TAG "PUMP_CONTROL"
 
-static bool blink_state = false;
 static volatile int64_t last_blink_time = 0;
 static volatile int64_t pump_start_time = 0;
 static float pump_start_moisture = 0;
@@ -16,15 +15,14 @@ static float pump_start_moisture = 0;
 QueueHandle_t moisture_queue;
 bool water_empty = false;
 bool pump_state = false;
-static volatile led_state current_led_state = LED_OFF;
+static volatile led_state current_moisture_led_state = LED_OFF;
 
 static void moisture_led_task(void *arg) {
     int64_t now;
+    static bool blink_state = false;
     
     while (1) {
-        now = esp_timer_get_time() / 1000;;
-        
-        switch (current_led_state) {
+        switch (current_moisture_led_state) {
             case LED_OFF:
                 gpio_set_level(MOISTURE_LED, 0);
                 break;
@@ -32,6 +30,7 @@ static void moisture_led_task(void *arg) {
                 gpio_set_level(MOISTURE_LED, 1);
                 break;
             case LED_BLINKING:
+                now = esp_timer_get_time() / 1000;
                 if (now - last_blink_time >= BLINK_INTERVAL_MS) {
                     blink_state = !blink_state;
                     gpio_set_level(MOISTURE_LED, blink_state);
@@ -51,7 +50,7 @@ static void pump_task(void *arg) {
             if (pump_state && water_empty) {
                 gpio_set_level(PUMP_GPIO, 0);
                 pump_state = false;
-                current_led_state = LED_BLINKING;
+                current_moisture_led_state = LED_BLINKING;
                 ESP_LOGI(TAG, "PUMP OFF (Water empty)");
             } else if (status.moisture <= PUMP_MOIST_LOWER_THRESHOLD && !pump_state && !water_empty) {
                 gpio_set_level(PUMP_GPIO, 1);
@@ -59,12 +58,12 @@ static void pump_task(void *arg) {
                 ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
                 pump_start_time = esp_timer_get_time() / 1000;
                 pump_start_moisture = status.moisture;
-                current_led_state = LED_ON;
+                current_moisture_led_state = LED_ON;
             } else if (status.moisture >= PUMP_MOIST_HIGHER_THRESHOLD && pump_state && !water_empty) {
                 gpio_set_level(PUMP_GPIO, 0);
                 pump_state = false;
                 ESP_LOGI(TAG, "PUMP OFF (Moisture in optimal range)");
-                current_led_state = LED_OFF;
+                current_moisture_led_state = LED_OFF;
             }
             
             if (pump_state && !water_empty) {
