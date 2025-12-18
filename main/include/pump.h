@@ -5,7 +5,7 @@
 #include "freertos/FreeRTOS.h"
 
 // Config
-#define PUMP_GPIO GPIO_NUM_23 //GPIO_NUM_39 in real project
+#define PUMP_GPIO GPIO_NUM_13 //GPIO_NUM_39 in real project
 #define MOISTURE_LED GPIO_NUM_2 //GPIO_NUM_37 in real project
 #define PUMP_MOIST_LOWER_THRESHOLD 30.0f //in percent of soil moisture, treshold that starts the pump
 #define PUMP_MOIST_HIGHER_THRESHOLD 50.0f //in percent of soil moisture, treshold that stops the pump
@@ -25,7 +25,7 @@ typedef struct {
 } moisture_status_t;
 
 // Public API
-bool pump_init(void);
+void pump_init(void);
 void pump_create_task(void);
 extern QueueHandle_t moisture_queue;
 extern bool water_empty;

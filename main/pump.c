@@ -8,8 +8,8 @@
 
 #define TAG "PUMP_CONTROL"
 
-static volatile int64_t last_blink_time = 0;
-static volatile int64_t pump_start_time = 0;
+static int64_t last_blink_time = 0; 
+static int64_t pump_start_time = 0;
 static float pump_start_moisture = 0;
 
 QueueHandle_t moisture_queue;
@@ -47,20 +47,20 @@ static void pump_task(void *arg) {
 
     while (1) {
         if (xQueueReceive(moisture_queue, &status, pdMS_TO_TICKS(5000)) == pdTRUE) {
-            if (pump_state && water_empty) {
-                gpio_set_level(PUMP_GPIO, 0);
+            if (pump_state && water_empty) { //check if water is empty and pump is on
+                gpio_set_level(PUMP_GPIO, 1);
                 pump_state = false;
                 current_moisture_led_state = LED_BLINKING;
                 ESP_LOGI(TAG, "PUMP OFF (Water empty)");
-            } else if (status.moisture <= PUMP_MOIST_LOWER_THRESHOLD && !pump_state && !water_empty) {
-                gpio_set_level(PUMP_GPIO, 1);
+            } else if (status.moisture <= PUMP_MOIST_LOWER_THRESHOLD && !pump_state && !water_empty) { //check lower treshold 
+                gpio_set_level(PUMP_GPIO, 0);
                 pump_state = true;
                 ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
                 pump_start_time = esp_timer_get_time() / 1000;
                 pump_start_moisture = status.moisture;
                 current_moisture_led_state = LED_ON;
-            } else if (status.moisture >= PUMP_MOIST_HIGHER_THRESHOLD && pump_state && !water_empty) {
-                gpio_set_level(PUMP_GPIO, 0);
+            } else if (status.moisture >= PUMP_MOIST_HIGHER_THRESHOLD && pump_state && !water_empty) { //check higher treshold
+                gpio_set_level(PUMP_GPIO, 1);
                 pump_state = false;
                 ESP_LOGI(TAG, "PUMP OFF (Moisture in optimal range)");
                 current_moisture_led_state = LED_OFF;
@@ -80,7 +80,7 @@ static void pump_task(void *arg) {
     }
 }
 
-bool pump_init(void) {
+void pump_init(void) {
     gpio_config_t io_conf_pump = {
         .pin_bit_mask = (1ULL << PUMP_GPIO),
         .mode = GPIO_MODE_OUTPUT,
@@ -102,7 +102,6 @@ bool pump_init(void) {
     gpio_set_level(MOISTURE_LED, 0);
     
     ESP_LOGI(TAG, "Pump and moisture LED GPIO configured");
-    return true;
 }
 
 void pump_create_task(void) {
