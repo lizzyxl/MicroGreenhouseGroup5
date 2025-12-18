@@ -11,5 +11,6 @@ void app_main(void)
     while (1)
     {
         dht11_read(&temperature, &humidity);
+        vTaskDelay(pdMS_TO_TICKS(200));
     }
 }

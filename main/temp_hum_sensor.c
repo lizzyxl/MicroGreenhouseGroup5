@@ -22,5 +22,4 @@ void dht11_read(float *temperature, float *humidity)
         printf("Could not read data from sensor\n");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(150)); // Delay for 1 second before next read
 }
