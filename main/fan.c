@@ -14,13 +14,13 @@ static void fan_task(void *arg) {
     temp_status_t status;
 
     while (1) {
-        if (xQueueReceive(temp_queue, &status, pdMS_TO_TICKS(0)) == pdTRUE) {
+        if (xQueueReceive(temp_queue, &status, pdMS_TO_TICKS(0)) == pdTRUE) { //get value from temp queue
             if (status.temperature >= FAN_TEMP_HIGHER_THRESHOLD && !fan_state) {
-                gpio_set_level(FAN_GPIO, 1);
+                gpio_set_level(FAN_GPIO, 0); // reversed due to relay
                 fan_state = true;
                 ESP_LOGI(TAG, "FAN ON");
             } else if (status.temperature <= FAN_TEMP_LOWER_THRESHOLD && fan_state) {
-                gpio_set_level(FAN_GPIO, 0);
+                gpio_set_level(FAN_GPIO, 1); // reversed due to relay
                 fan_state = false;
                 ESP_LOGI(TAG, "FAN OFF");
             }
@@ -38,7 +38,7 @@ bool fan_init(void) {
         .intr_type = GPIO_INTR_DISABLE,
     };
     gpio_config(&io_conf);
-    gpio_set_level(FAN_GPIO, 0);
+    gpio_set_level(FAN_GPIO, 1);
 
     ESP_LOGI(TAG, "Fan GPIO configured");
     return true;

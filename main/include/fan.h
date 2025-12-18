@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 
-#define FAN_GPIO GPIO_NUM_2
+// Config
+#define FAN_GPIO GPIO_NUM_13
 #define FAN_TEMP_HIGHER_THRESHOLD 25.0f
 #define FAN_TEMP_LOWER_THRESHOLD 20.0f
 #define FAN_CHECK_INTERVAL_MS 1000
