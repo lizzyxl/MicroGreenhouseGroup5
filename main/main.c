@@ -25,10 +25,10 @@ void app_main(void)
         if (raw >= 0) {
             if (is_day && raw < NIGHT_THRESHOLD) {
                 is_day = 0;
-                ESP_LOGI(TAG, "Transition to NIGHT mode");
+                ESP_LOGI(TAG, "switch to NIGHT mode");
             } else if (!is_day && raw > DAY_THRESHOLD) {
                 is_day = 1;
-                ESP_LOGI(TAG, "Transition to DAY mode");
+                ESP_LOGI(TAG, "switch to DAY mode");
             }
             ESP_LOGI(TAG, "LDR Raw: %d, Voltage: %.2f V | State: %s", raw, voltage, is_day ? "DAY" : "NIGHT");
         }
