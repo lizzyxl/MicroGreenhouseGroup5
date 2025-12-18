@@ -10,7 +10,7 @@ void ldr_init(void)
 {
     // Configure ADC unit (ADC2 for GPIO2)
     adc_oneshot_unit_init_cfg_t init_config = {
-        .unit_id = ADC_UNIT_2,
+        .unit_id = ADC_UNIT,
         .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
     adc_oneshot_new_unit(&init_config, &adc_handle);
@@ -20,11 +20,11 @@ void ldr_init(void)
         .bitwidth = ADC_BITWIDTH_12, // 12-bit resolution (0-4095)
         .atten = ADC_ATTEN_DB_11,
     };
-    adc_oneshot_config_channel(adc_handle, ADC_CHANNEL_3, &chan_config);
+    adc_oneshot_config_channel(adc_handle, ADC_CHANNEL, &chan_config);
 
     // Configure calibration (maps raw ADC values to voltage)
     adc_cali_line_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT_1,
+        .unit_id = ADC_UNIT,
         .atten = ADC_ATTEN_DB_11,
         .bitwidth = ADC_BITWIDTH_12,
     };
@@ -40,7 +40,7 @@ int ldr_read_raw(void)
 {
     int raw = 0;
     // Try to read the raw ADC value fom channel 2 (GPIO2)
-    if (adc_oneshot_read(adc_handle, ADC_CHANNEL_2, &raw) == ESP_OK)
+    if (adc_oneshot_read(adc_handle, ADC_CHANNEL, &raw) == ESP_OK)
     {
         return raw;
     }

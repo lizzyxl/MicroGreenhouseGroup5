@@ -5,11 +5,15 @@
 #include "esp_log.h"
 
 #define TAG "LDR"
+#define DAY_THRESHOLD 1500  // Example threshold for day
+#define NIGHT_THRESHOLD 1000 // Example threshold for night
 
 void app_main(void)
 {
     // Initialize the LDR sensor before using
     ldr_init();
+
+    int is_day = 1; // Assume it's day initially
 
     // Keep reading sensor values
     while (1)
@@ -19,7 +23,14 @@ void app_main(void)
 
         // If reading was successful, log the values
         if (raw >= 0) {
-            ESP_LOGI(TAG, "LDR Raw: %d, Voltage: %.2f V", raw, voltage);
+            if (is_day && raw < NIGHT_THRESHOLD) {
+                is_day = 0;
+                ESP_LOGI(TAG, "Transition to NIGHT mode");
+            } else if (!is_day && raw > DAY_THRESHOLD) {
+                is_day = 1;
+                ESP_LOGI(TAG, "Transition to DAY mode");
+            }
+            ESP_LOGI(TAG, "LDR Raw: %d, Voltage: %.2f V | State: %s", raw, voltage, is_day ? "DAY" : "NIGHT");
         }
         else {
             ESP_LOGE(TAG, "Error reading LDR values");
