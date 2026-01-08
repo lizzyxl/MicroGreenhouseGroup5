@@ -3,6 +3,7 @@
 #include "fan.h"
 #include "pump.h"
 #include "grow_light.h"
+#include "temp_hum_sensor.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define MEASUREMENT_INTERVAL_MS 1000
@@ -19,7 +20,9 @@ void app_main(void)
     while(1) {
         // sensor measurements
         float temperature = 0;
+        float humidity = 0;
         float moisture = 0;
+        dht11_read(&temperature, &humidity);
 
         // TEMP: simulated light
         int light = get_simulated_light_level();

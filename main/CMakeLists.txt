@@ -1,2 +1,2 @@
-idf_component_register(SRCS "main.c" "fan.c" "pump.c"
+idf_component_register(SRCS "dht.c" "temp_hum_sensor.c" "main.c" "fan.c" "pump.c"
                     INCLUDE_DIRS "." "include")
