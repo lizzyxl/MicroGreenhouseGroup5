@@ -5,6 +5,7 @@
 #include "grow_light.h"
 #include "utils.h"
 #include "display.h"
+#include "temp_hum_sensor.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define MEASUREMENT_INTERVAL_MS 1000
@@ -39,13 +40,16 @@ void app_main(void)
 
     while(1) {
         uint32_t now = esp_log_timestamp();
-
+        // sensor measurements
+        float temperature = 0;
+        float humidity = 0;
+        float moisture = 0;
+        
         if (now - last_measurement_time >= MEASUREMENT_INTERVAL_MS) {
             // sensor measurements
-            temperature = 0;
             soil_moisture = 0;
-            relative_humidity = 0;
             light = 0;
+            dht11_read(&temperature, &relative_humidity);
 
             current_measurements.temperature = temperature;
             current_measurements.soil_moisture = soil_moisture;
