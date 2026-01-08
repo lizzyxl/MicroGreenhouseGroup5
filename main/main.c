@@ -40,11 +40,7 @@ void app_main(void)
 
     while(1) {
         uint32_t now = esp_log_timestamp();
-        // sensor measurements
-        float temperature = 0;
-        float humidity = 0;
-        float moisture = 0;
-        
+       
         if (now - last_measurement_time >= MEASUREMENT_INTERVAL_MS) {
             // sensor measurements
             soil_moisture = 0;
