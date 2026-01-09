@@ -8,6 +8,7 @@
 #include "temp_hum_sensor.h"
 #include "light_sensor.h"
 #include "inputs.h"
+#include "soil_moisture.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define MEASUREMENT_INTERVAL_MS 1000
@@ -25,6 +26,7 @@ void app_main(void)
     grow_light_init();
     greenhouse_display_init();
     inputs_init();
+    soil_sensor_init();
 
     ESP_LOGI(TAG, "Initializing components completed");
 
@@ -48,7 +50,8 @@ void app_main(void)
        
         if (now - last_measurement_time >= MEASUREMENT_INTERVAL_MS) {
             // sensor measurements
-            soil_moisture = 0;
+            soil_data_t soil = soil_sensor_read();
+            soil_moisture = (float)soil.moisture_percent;
             light = ldr_read_raw();
             //dht11_read(&temperature, &relative_humidity);
 
@@ -57,7 +60,7 @@ void app_main(void)
             current_measurements.relative_humidity = relative_humidity;
             current_measurements.light = light;
 
-            ESP_LOGI(TAG, "Measurment taken: temperature: %.2f C, relative humidity: %.2f %%, soil moisture: %.2f, light intensity: %d", current_measurements.temperature, current_measurements.relative_humidity, current_measurements.soil_moisture, current_measurements.light = light);
+            ESP_LOGI(TAG, "Measurement taken: temperature: %.2f C, relative humidity: %.2f %%, soil moisture: %.2f, light intensity: %d", current_measurements.temperature, current_measurements.relative_humidity, current_measurements.soil_moisture, current_measurements.light = light);
             
             // Cloud update (TODO)
 
