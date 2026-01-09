@@ -28,14 +28,13 @@ extern "C" {
  **********************/
 
 /*Data of barcode*/
-struct _lv_barcode_t {
+struct lv_barcode_t {
     lv_canvas_t canvas;
     lv_color_t dark_color;
     lv_color_t light_color;
     uint16_t scale;
     lv_dir_t direction;
     bool tiled;
-    lv_barcode_encoding_t encoding;
 };
 
 

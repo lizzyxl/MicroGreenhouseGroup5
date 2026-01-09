@@ -426,22 +426,20 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_IMAGE_IMG_COGWHEEL_RGB uint8_t img_cog
 };
 
 const lv_image_dsc_t img_cogwheel_rgb = {
-    .header = {
-        .cf = LV_COLOR_FORMAT_NATIVE,
-        .w = 100,
-        .h = 100,
+    .header.w = 100,
+    .header.h = 100,
 #if LV_COLOR_DEPTH == 1 || LV_COLOR_DEPTH == 8
-        .stride = 100,
+    .header.stride = 100,
 #elif LV_COLOR_DEPTH == 16
-        .stride = 200,
+    .header.stride = 200,
 #elif LV_COLOR_DEPTH == 24
-        .stride = 300,
+    .header.stride = 300,
 #elif LV_COLOR_DEPTH == 32
-        .stride = 400,
+    .header.stride = 400,
 #endif
-    },
-    .data_size = sizeof(img_cogwheel_rgb_map),
+    .header.cf = LV_COLOR_FORMAT_NATIVE,
     .data = img_cogwheel_rgb_map,
+    .data_size = sizeof(img_cogwheel_rgb_map),
 };
 
 #endif /* LV_BUILD_EXAMPLES */

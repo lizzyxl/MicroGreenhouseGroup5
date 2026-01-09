@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-void display_init(void);
+void greenhouse_display_init(void);
 void display_draw(measurements_t *measurements, int button_press);
 
 #endif

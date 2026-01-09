@@ -44,9 +44,7 @@ PACK_BUILD=build/
 # alternative: specify directory names to be added to pack base directory
 PACK_DIRS="
   ../../src
-  ../../libs
   ../../demos
-  ../../xmls
   ../../env_support/pikascript
 "
 
@@ -57,7 +55,6 @@ PACK_BASE_FILES="
   ../../README.md
   ../../lvgl.h
   ../../lv_version.h
-  ../../lvgl_private.h
   lv_conf_cmsis.h
   lv_cmsis_pack.txt
 "

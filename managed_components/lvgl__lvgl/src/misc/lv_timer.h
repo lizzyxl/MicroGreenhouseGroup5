@@ -44,11 +44,15 @@ typedef void (*lv_timer_handler_resume_cb_t)(void * data);
  * GLOBAL PROTOTYPES
  **********************/
 
+//! @cond Doxygen_Suppress
+
 /**
  * Call it periodically to handle lv_timers.
  * @return time till it needs to be run next (in ms)
  */
 LV_ATTRIBUTE_TIMER_HANDLER uint32_t lv_timer_handler(void);
+
+//! @endcond
 
 /**
  * Call it in the super-loop of main() or threads. It will run lv_timer_handler()
@@ -98,7 +102,6 @@ void lv_timer_delete(lv_timer_t * timer);
 
 /**
  * Pause a timer.
- * It is typically safe to call from an interrupt handler or a different thread.
  * @param timer pointer to an lv_timer
  */
 void lv_timer_pause(lv_timer_t * timer);

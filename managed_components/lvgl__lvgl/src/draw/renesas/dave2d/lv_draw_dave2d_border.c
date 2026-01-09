@@ -1,17 +1,15 @@
 #include "lv_draw_dave2d.h"
 #if LV_USE_DRAW_DAVE2D
 
-#include "../../../misc/lv_area_private.h"
-
-static void dave2d_draw_border_complex(lv_draw_task_t * t, const lv_area_t * outer_area,
+static void dave2d_draw_border_complex(lv_draw_dave2d_unit_t * draw_unit, const lv_area_t * outer_area,
                                        const lv_area_t * inner_area,
                                        int32_t rout, int32_t rin, lv_color_t color, lv_opa_t opa);
 
-static void dave2d_draw_border_simple(lv_draw_task_t * t, const lv_area_t * outer_area,
+static void dave2d_draw_border_simple(lv_draw_dave2d_unit_t * draw_unit, const lv_area_t * outer_area,
                                       const lv_area_t * inner_area,
                                       lv_color_t color, lv_opa_t opa);
 
-void lv_draw_dave2d_border(lv_draw_task_t * t, const lv_draw_border_dsc_t * dsc,
+void lv_draw_dave2d_border(lv_draw_dave2d_unit_t * draw_unit, const lv_draw_border_dsc_t * dsc,
                            const lv_area_t * coords)
 {
     if(dsc->opa <= LV_OPA_MIN) return;
@@ -36,15 +34,15 @@ void lv_draw_dave2d_border(lv_draw_task_t * t, const lv_draw_border_dsc_t * dsc,
     if(rin < 0) rin = 0;
 
     if(rout == 0 && rin == 0) {
-        dave2d_draw_border_simple(t, coords, &area_inner, dsc->color, dsc->opa);
+        dave2d_draw_border_simple(draw_unit, coords, &area_inner, dsc->color, dsc->opa);
     }
     else {
-        dave2d_draw_border_complex(t, coords, &area_inner, rout, rin, dsc->color, dsc->opa);
+        dave2d_draw_border_complex(draw_unit, coords, &area_inner, rout, rin, dsc->color, dsc->opa);
     }
 
 }
 
-static void dave2d_draw_border_simple(lv_draw_task_t * t, const lv_area_t * outer_area,
+static void dave2d_draw_border_simple(lv_draw_dave2d_unit_t * u, const lv_area_t * outer_area,
                                       const lv_area_t * inner_area,
                                       lv_color_t color, lv_opa_t opa)
 
@@ -57,10 +55,8 @@ static void dave2d_draw_border_simple(lv_draw_task_t * t, const lv_area_t * oute
     int32_t y;
     bool is_common;
 
-    is_common = lv_area_intersect(&clip_area, outer_area, &t->clip_area);
+    is_common = lv_area_intersect(&clip_area, outer_area, u->base_unit.clip_area);
     if(!is_common) return;
-
-    lv_draw_dave2d_unit_t * u = (lv_draw_dave2d_unit_t *)t->draw_unit;
 
 #if LV_USE_OS
     lv_result_t  status;
@@ -71,14 +67,21 @@ static void dave2d_draw_border_simple(lv_draw_task_t * t, const lv_area_t * oute
     local_outer_area = *outer_area;
     local_inner_area = *inner_area;
 
-    x = 0 - t->target_layer->buf_area.x1;
-    y = 0 - t->target_layer->buf_area.y1;
+    x = 0 - u->base_unit.target_layer->buf_area.x1;
+    y = 0 - u->base_unit.target_layer->buf_area.y1;
 
     lv_area_move(&clip_area, x, y);
     lv_area_move(&local_outer_area, x, y);
     lv_area_move(&local_inner_area, x, y);
 
-    d2_framebuffer_from_layer(u->d2_handle, t->target_layer);
+#if D2_RENDER_EACH_OPERATION
+    d2_selectrenderbuffer(u->d2_handle, u->renderbuffer);
+#endif
+    //
+    // Generate render operations
+    //
+
+    d2_framebuffer_from_layer(u->d2_handle, u->base_unit.target_layer);
 
     d2_setcolor(u->d2_handle, 0, lv_draw_dave2d_lv_colour_to_d2_colour(color));
     d2_setalpha(u->d2_handle, opa);
@@ -136,13 +139,21 @@ static void dave2d_draw_border_simple(lv_draw_task_t * t, const lv_area_t * oute
                      (d2_point)D2_FIX4(lv_area_get_height(&a)));
     }
 
+    //
+    // Execute render operations
+    //
+#if D2_RENDER_EACH_OPERATION
+    d2_executerenderbuffer(u->d2_handle, u->renderbuffer, 0);
+    d2_flushframe(u->d2_handle);
+#endif
+
 #if LV_USE_OS
     status = lv_mutex_unlock(u->pd2Mutex);
     LV_ASSERT(LV_RESULT_OK == status);
 #endif
 }
 
-static void dave2d_draw_border_complex(lv_draw_task_t * t, const lv_area_t * orig_outer_area,
+static void dave2d_draw_border_complex(lv_draw_dave2d_unit_t * u, const lv_area_t * orig_outer_area,
                                        const lv_area_t * orig_inner_area,
                                        int32_t rout, int32_t rin, lv_color_t color, lv_opa_t opa)
 {
@@ -158,9 +169,8 @@ static void dave2d_draw_border_complex(lv_draw_task_t * t, const lv_area_t * ori
 
     outer_area = *orig_outer_area;
     inner_area = *orig_inner_area;
-    lv_draw_dave2d_unit_t * u = (lv_draw_dave2d_unit_t *)t->draw_unit;
 
-    if(!lv_area_intersect(&draw_area, &outer_area, &t->clip_area)) return;
+    if(!lv_area_intersect(&draw_area, &outer_area, u->base_unit.clip_area)) return;
 
 #if LV_USE_OS
     lv_result_t  status;
@@ -168,18 +178,21 @@ static void dave2d_draw_border_complex(lv_draw_task_t * t, const lv_area_t * ori
     LV_ASSERT(LV_RESULT_OK == status);
 #endif
 
-    x = 0 - t->target_layer->buf_area.x1;
-    y = 0 - t->target_layer->buf_area.y1;
+    x = 0 - u->base_unit.target_layer->buf_area.x1;
+    y = 0 - u->base_unit.target_layer->buf_area.y1;
 
     lv_area_move(&draw_area, x, y);
     lv_area_move(&outer_area, x, y);
     lv_area_move(&inner_area, x, y);
 
+#if D2_RENDER_EACH_OPERATION
+    d2_selectrenderbuffer(u->d2_handle, u->renderbuffer);
+#endif
     //
     // Generate render operations
     //
 
-    d2_framebuffer_from_layer(u->d2_handle, t->target_layer);
+    d2_framebuffer_from_layer(u->d2_handle, u->base_unit.target_layer);
 
     d2_setcolor(u->d2_handle, 0, lv_draw_dave2d_lv_colour_to_d2_colour(color));
     d2_setalpha(u->d2_handle, opa);
@@ -383,6 +396,14 @@ static void dave2d_draw_border_complex(lv_draw_task_t * t, const lv_area_t * ori
         }
         d2_setantialiasing(u->d2_handle, aa); //restore original setting
     }
+
+    //
+    // Execute render operations
+    //
+#if D2_RENDER_EACH_OPERATION
+    d2_executerenderbuffer(u->d2_handle, u->renderbuffer, 0);
+    d2_flushframe(u->d2_handle);
+#endif
 
 #if LV_USE_OS
     status = lv_mutex_unlock(u->pd2Mutex);

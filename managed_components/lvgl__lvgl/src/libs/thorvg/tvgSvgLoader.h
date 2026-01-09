@@ -29,8 +29,6 @@
 #include "tvgTaskScheduler.h"
 #include "tvgSvgLoaderCommon.h"
 
-using std::ifstream;
-
 class SvgLoader : public ImageLoader, public Task
 {
 public:

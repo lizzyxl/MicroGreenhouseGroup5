@@ -13,7 +13,6 @@
 #if LV_USE_BARCODE
 
 #include "code128.h"
-#include "../../misc/cache/lv_cache.h"
 
 /*********************
  *      DEFINES
@@ -42,7 +41,7 @@ const lv_obj_class_t lv_barcode_class = {
     .width_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(lv_barcode_t),
     .base_class = &lv_canvas_class,
-    .name = "lv_barcode",
+    .name = "barcode",
 };
 
 /**********************
@@ -106,14 +105,6 @@ void lv_barcode_set_tiled(lv_obj_t * obj, bool tiled)
     lv_image_set_inner_align(obj, tiled ? LV_IMAGE_ALIGN_TILE : LV_IMAGE_ALIGN_DEFAULT);
 }
 
-void lv_barcode_set_encoding(lv_obj_t * obj, lv_barcode_encoding_t encoding)
-{
-    LV_ASSERT_OBJ(obj, MY_CLASS);
-
-    lv_barcode_t * barcode = (lv_barcode_t *)obj;
-    barcode->encoding = encoding;
-}
-
 lv_result_t lv_barcode_update(lv_obj_t * obj, const char * data)
 {
     LV_ASSERT_OBJ(obj, MY_CLASS);
@@ -136,19 +127,10 @@ lv_result_t lv_barcode_update(lv_obj_t * obj, const char * data)
         return LV_RESULT_INVALID;
     }
 
-    lv_barcode_t * barcode = (lv_barcode_t *)obj;
-
-    int32_t barcode_w = 0;
-    switch(barcode->encoding) {
-        case LV_BARCODE_ENCODING_CODE128_GS1:
-            barcode_w = (int32_t) code128_encode_gs1(data, out_buf, len);
-            break;
-        case LV_BARCODE_ENCODING_CODE128_RAW:
-            barcode_w = (int32_t) code128_encode_raw(data, out_buf, len);
-            break;
-    }
+    int32_t barcode_w = (int32_t) code128_encode_gs1(data, out_buf, len);
     LV_LOG_INFO("barcode width = %" LV_PRId32, barcode_w);
 
+    lv_barcode_t * barcode = (lv_barcode_t *)obj;
     LV_ASSERT(barcode->scale > 0);
     uint16_t scale = barcode->scale;
 
@@ -253,14 +235,6 @@ uint16_t lv_barcode_get_scale(lv_obj_t * obj)
     return barcode->scale;
 }
 
-lv_barcode_encoding_t lv_barcode_get_encoding(const lv_obj_t * obj)
-{
-    LV_ASSERT_OBJ(obj, MY_CLASS);
-
-    const lv_barcode_t * barcode = (const lv_barcode_t *)obj;
-    return barcode->encoding;
-}
-
 /**********************
  *   STATIC FUNCTIONS
  **********************/
@@ -274,7 +248,6 @@ static void lv_barcode_constructor(const lv_obj_class_t * class_p, lv_obj_t * ob
     barcode->light_color = lv_color_white();
     barcode->scale = 1;
     barcode->direction = LV_DIR_HOR;
-    barcode->encoding = LV_BARCODE_ENCODING_CODE128_GS1;
     lv_image_set_inner_align(obj, LV_IMAGE_ALIGN_DEFAULT);
 }
 

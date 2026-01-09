@@ -15,15 +15,6 @@
 #include "../../misc/lv_assert.h"
 #include "../../stdlib/lv_string.h"
 
-/*Testing of dependencies*/
-#if LV_USE_BUTTONMATRIX == 0
-    #error "lv_buttonmatrix is required. Enable it in lv_conf.h (LV_USE_BUTTONMATRIX  1) "
-#endif
-
-#if LV_USE_TEXTAREA == 0
-    #error "lv_textarea is required. Enable it in lv_conf.h (LV_USE_TEXTAREA  1) "
-#endif
-
 /*********************
  *      DEFINES
  *********************/
@@ -78,7 +69,7 @@ const lv_obj_class_t lv_keyboard_class = {
     .instance_size = sizeof(lv_keyboard_t),
     .editable = 1,
     .base_class = &lv_buttonmatrix_class,
-    .name = "lv_keyboard",
+    .name = "keyboard",
 #if LV_USE_OBJ_PROPERTY
     .prop_index_start = LV_PROPERTY_KEYBOARD_START,
     .prop_index_end = LV_PROPERTY_KEYBOARD_END,
@@ -185,19 +176,19 @@ static const lv_buttonmatrix_ctrl_t default_kb_ctrl_num_map[] = {
     1, 1, 1, 1, 1
 };
 
-static const char * const * kb_map[10] = {
-    default_kb_map_lc,
-    default_kb_map_uc,
-    default_kb_map_spec,
-    default_kb_map_num,
-    default_kb_map_lc,
-    default_kb_map_lc,
-    default_kb_map_lc,
-    default_kb_map_lc,
+static const char * * kb_map[10] = {
+    (const char * *)default_kb_map_lc,
+    (const char * *)default_kb_map_uc,
+    (const char * *)default_kb_map_spec,
+    (const char * *)default_kb_map_num,
+    (const char * *)default_kb_map_lc,
+    (const char * *)default_kb_map_lc,
+    (const char * *)default_kb_map_lc,
+    (const char * *)default_kb_map_lc,
 #if LV_USE_ARABIC_PERSIAN_CHARS == 1
-    default_kb_map_ar,
+    (const char * *)default_kb_map_ar,
 #endif
-    NULL
+    (const char * *)NULL
 };
 static const lv_buttonmatrix_ctrl_t * kb_ctrl[10] = {
     default_kb_ctrl_lc_map,
@@ -278,7 +269,7 @@ void lv_keyboard_set_popovers(lv_obj_t * obj, bool en)
     lv_keyboard_update_ctrl_map(obj);
 }
 
-void lv_keyboard_set_map(lv_obj_t * obj, lv_keyboard_mode_t mode, const char * const map[],
+void lv_keyboard_set_map(lv_obj_t * obj, lv_keyboard_mode_t mode, const char * map[],
                          const lv_buttonmatrix_ctrl_t ctrl_map[])
 {
     LV_ASSERT_OBJ(obj, MY_CLASS);
@@ -419,7 +410,7 @@ void lv_keyboard_def_event_cb(lv_event_t * e)
     }
 }
 
-const char * const * lv_keyboard_get_map_array(const lv_obj_t * kb)
+const char ** lv_keyboard_get_map_array(const lv_obj_t * kb)
 {
     return lv_buttonmatrix_get_map(kb);
 }

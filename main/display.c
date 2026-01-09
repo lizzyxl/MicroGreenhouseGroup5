@@ -32,7 +32,7 @@
 
 static uint8_t oled_buffer[LCD_H_RES * LCD_V_RES / 8]; //Raw pixel buffer in bytes
 static _lock_t lvgl_api_lock;
-static lv_display_t *game_disp;
+static lv_display_t *greenhouse_display;
 static esp_lcd_panel_handle_t panel_handle;
 static esp_lcd_panel_io_handle_t io_handle;
 static esp_timer_handle_t lvgl_tick_timer;
@@ -47,7 +47,6 @@ static lv_obj_t *blue_panel = NULL;
 static lv_obj_t *yellow_panel = NULL;
 static lv_obj_t *measurment_description_label = NULL;
 static lv_obj_t *measurment_value_label = NULL;
-
 
 static bool notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t io_panel, esp_lcd_panel_io_event_data_t *edata, void *user_ctx) {
     lv_display_flush_ready((lv_display_t*)user_ctx);
@@ -91,8 +90,7 @@ static void lvgl_task(void *arg) {
     }
 }
 
-void display_init(void) {
-    ESP_LOGI(TAG, "Initialize I2C bus");
+void greenhouse_display_init(void) {
     i2c_master_bus_handle_t i2c_bus = NULL;
     i2c_master_bus_config_t bus_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
@@ -104,7 +102,6 @@ void display_init(void) {
     };
     ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus));
 
-    ESP_LOGI(TAG, "Install panel IO");
     esp_lcd_panel_io_i2c_config_t io_config = {
         .dev_addr = I2C_HW_ADDR,
         .scl_speed_hz = LCD_PIXEL_CLOCK_HZ,
@@ -115,7 +112,6 @@ void display_init(void) {
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
 
-    ESP_LOGI(TAG, "Install SSD1306 panel");
     esp_lcd_panel_dev_config_t panel_config = {
         .bits_per_pixel = 1,
         .reset_gpio_num = PIN_NUM_RST,
@@ -130,24 +126,23 @@ void display_init(void) {
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
 
-    ESP_LOGI(TAG, "Initialize LVGL");
     lv_init();
     
-    game_disp = lv_display_create(LCD_H_RES, LCD_V_RES);
-    lv_display_set_user_data(game_disp, panel_handle);
+    greenhouse_display = lv_display_create(LCD_H_RES, LCD_V_RES);
+    lv_display_set_user_data(greenhouse_display, panel_handle);
 
     size_t draw_buffer_sz = LCD_H_RES * LCD_V_RES / 8 + LVGL_PALETTE_SIZE;
     void *buf = heap_caps_calloc(1, draw_buffer_sz, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     assert(buf);
     
-    lv_display_set_color_format(game_disp, LV_COLOR_FORMAT_I1);
-    lv_display_set_buffers(game_disp, buf, NULL, draw_buffer_sz, LV_DISP_RENDER_MODE_FULL);
-    lv_display_set_flush_cb(game_disp, lvgl_flush_cb);
+    lv_display_set_color_format(greenhouse_display, LV_COLOR_FORMAT_I1);
+    lv_display_set_buffers(greenhouse_display, buf, NULL, draw_buffer_sz, LV_DISP_RENDER_MODE_FULL);
+    lv_display_set_flush_cb(greenhouse_display, lvgl_flush_cb);
 
     const esp_lcd_panel_io_callbacks_t cbs = {
         .on_color_trans_done = notify_lvgl_flush_ready,
     };
-    esp_lcd_panel_io_register_event_callbacks(io_handle, &cbs, game_disp);
+    esp_lcd_panel_io_register_event_callbacks(io_handle, &cbs, greenhouse_display);
 
     const esp_timer_create_args_t lvgl_tick_timer_args = {
         .callback = &increase_lvgl_tick,
@@ -162,7 +157,9 @@ void display_init(void) {
 // ui_init
 void ui_init_once(void)
 {
-    if (display_screen) return;
+    static bool initialized = false;
+    if (initialized) return;
+    initialized = true;
 
     display_screen = lv_obj_create(NULL);
     lv_screen_load(display_screen);
@@ -184,7 +181,6 @@ void ui_init_once(void)
     lv_obj_set_size(blue_panel, 128, 48);
     lv_obj_set_pos(blue_panel, 0, 0);
     lv_obj_set_style_bg_color(blue_panel, lv_color_black(), 0);
-    lv_obj_clear_flag(blue_panel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_pad_all(blue_panel, 0, 0);
     lv_obj_set_style_pad_row(blue_panel, 0, 0);
     lv_obj_set_style_pad_column(blue_panel, 0, 0);
@@ -192,25 +188,32 @@ void ui_init_once(void)
 
     // Measurement description
     measurment_description_label = lv_label_create(blue_panel);
-    lv_obj_set_pos(measurment_description_label, 2, 2);
+    lv_obj_set_size(measurment_description_label, 122, 12);
+    lv_obj_set_pos(measurment_description_label, 3, 8);
+    lv_obj_set_style_text_align(measurment_description_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(measurment_description_label, lv_color_white(), 0);
     lv_obj_set_style_bg_color(measurment_description_label, lv_color_black(), 0);
-    lv_obj_set_style_text_font(measurment_description_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_font(measurment_description_label, &lv_font_unscii_8, 0);
 
     // Measurement value
     measurment_value_label = lv_label_create(blue_panel);
-    lv_obj_set_pos(measurment_value_label, 2, 10);
+    lv_obj_set_size(measurment_value_label, 122, 12);
+    lv_obj_set_pos(measurment_value_label, 3, 26); 
+    lv_obj_set_style_text_align(measurment_value_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(measurment_value_label, lv_color_white(), 0);
     lv_obj_set_style_bg_color(measurment_value_label, lv_color_black(), 0);
-    lv_obj_set_style_text_font(measurment_value_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_align(measurment_value_label, LV_TEXT_ALIGN_CENTER, 0); 
+    lv_obj_set_style_text_font(measurment_value_label, &lv_font_unscii_16, 0);
 }
 
 void display_draw(measurements_t *measurements, int button_press) {
     _lock_acquire(&lvgl_api_lock);
     ui_init_once();
-    static int cycle_screen = 0;
 
-    if (button_press) {
+    static int cycle_screen = 0;
+    static int last_button_press = 0;
+
+    if (button_press == 0 && last_button_press == 1) {
         cycle_screen++;
         if (cycle_screen > MAX_SCREENS-1) {
             cycle_screen = 0;

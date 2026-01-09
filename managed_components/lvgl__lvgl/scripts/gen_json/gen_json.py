@@ -5,53 +5,90 @@ import shutil
 import tempfile
 import json
 import subprocess
+import threading
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, base_path)
 
-project_dir = os.path.abspath(os.path.join(base_path, '..', '..'))
-docs_path = os.path.join(project_dir, 'docs')
+project_path = os.path.abspath(os.path.join(base_path, '..', '..'))
+docs_path = os.path.join(project_path, 'docs')
 sys.path.insert(0, docs_path)
 
 import create_fake_lib_c  # NOQA
 import pycparser_monkeypatch  # NOQA
 import pycparser  # NOQA
 
-doxyfile_filename = 'Doxyfile'
 DEVELOP = False
 
 
-intermediate_dir = tempfile.mkdtemp(suffix='.lvgl_json')
+class STDOut:
+    def __init__(self):
+        self._stdout = sys.stdout
+        sys.__stdout__ = self
+        sys.stdout = self
+
+    def write(self, data):
+        pass
+
+    def __getattr__(self, item):
+        if item in self.__dict__:
+            return self.__dict__[item]
+
+        return getattr(self._stdout, item)
+
+    def reset(self):
+        sys.stdout = self._stdout
 
 
-def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_private, no_docstrings, *compiler_args):
+temp_directory = tempfile.mkdtemp(suffix='.lvgl_json')
+
+
+def run(output_path, lvgl_config_path, output_to_stdout, target_header, filter_private, *compiler_args):
+    # stdout = STDOut()
 
     pycparser_monkeypatch.FILTER_PRIVATE = filter_private
 
-    lvgl_dir = project_dir
-    lvgl_src_dir = os.path.join(lvgl_dir, 'src')
-    int_lvgl_dir = os.path.join(intermediate_dir, 'lvgl')
-    lv_conf_dest_file = os.path.join(intermediate_dir, 'lv_conf.h')
+    # The thread is to provide an indication that things are being processed.
+    # There are long periods where nothing gets output to the screen and this
+    # is to let the user know that it is still working.
+    if not output_to_stdout:
+        event = threading.Event()
+
+        def _do():
+            while not event.is_set():
+                event.wait(1)
+                sys.stdout.write('.')
+                sys.stdout.flush()
+
+            print()
+
+        t = threading.Thread(target=_do)
+        t.daemon = True
+        t.start()
+
+    lvgl_path = project_path
+    lvgl_src_path = os.path.join(lvgl_path, 'src')
+    temp_lvgl = os.path.join(temp_directory, 'lvgl')
     target_header_base_name = (
         os.path.splitext(os.path.split(target_header)[-1])[0]
     )
 
     try:
-        os.mkdir(int_lvgl_dir)
-        shutil.copytree(lvgl_src_dir, os.path.join(int_lvgl_dir, 'src'))
-        shutil.copyfile(os.path.join(lvgl_dir, 'lvgl.h'), os.path.join(int_lvgl_dir, 'lvgl.h'))
+        os.mkdir(temp_lvgl)
+        shutil.copytree(lvgl_src_path, os.path.join(temp_lvgl, 'src'))
+        shutil.copyfile(os.path.join(lvgl_path, 'lvgl.h'), os.path.join(temp_lvgl, 'lvgl.h'))
 
-        pp_file = os.path.join(intermediate_dir, target_header_base_name + '.pp')
+        pp_file = os.path.join(temp_directory, target_header_base_name + '.pp')
 
-        if lv_conf_file is None:
-            lv_conf_templ_file = os.path.join(lvgl_dir, 'lv_conf_template.h')
+        if lvgl_config_path is None:
+            lvgl_config_path = os.path.join(lvgl_path, 'lv_conf_template.h')
 
-            with open(lv_conf_templ_file, 'rb') as f:
-                lines = f.read().decode('utf-8').split('\n')
+            with open(lvgl_config_path, 'rb') as f:
+                data = f.read().decode('utf-8').split('\n')
 
-            for i, line in enumerate(lines):
+            for i, line in enumerate(data):
                 if line.startswith('#if 0'):
-                    lines[i] = '#if 1'
+                    data[i] = '#if 1'
                 else:
                     for item in (
                         'LV_USE_LOG',
@@ -77,15 +114,17 @@ def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_priva
                         'LV_USE_FREETYPE'
                     ):
                         if line.startswith(f'#define {item} '):
-                            lines[i] = f'#define {item} 1'
+                            data[i] = f'#define {item} 1'
                             break
 
-            with open(lv_conf_dest_file, 'wb') as f:
-                f.write('\n'.join(lines).encode('utf-8'))
+            with open(os.path.join(temp_directory, 'lv_conf.h'), 'wb') as f:
+                f.write('\n'.join(data).encode('utf-8'))
         else:
-            shutil.copyfile(lv_conf_file, lv_conf_dest_file)
+            src = lvgl_config_path
+            dst = os.path.join(temp_directory, 'lv_conf.h')
+            shutil.copyfile(src, dst)
 
-        include_dirs = [intermediate_dir, project_dir]
+        include_dirs = [temp_directory, project_path]
 
         if sys.platform.startswith('win'):
             import get_sdl2
@@ -103,7 +142,7 @@ def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_priva
             env = pyMSVC.setup_environment()  # NOQA
             cpp_cmd = ['cl', '/std:c11', '/nologo', '/P']
             output_pp = f'/Fi"{pp_file}"'
-            sdl2_include, _ = get_sdl2.get_sdl2(intermediate_dir)
+            sdl2_include, _ = get_sdl2.get_sdl2(temp_directory)
             include_dirs.append(sdl2_include)
             include_path_env_key = 'INCLUDE'
 
@@ -120,7 +159,7 @@ def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_priva
             ]
             output_pp = f' >> "{pp_file}"'
 
-        fake_libc_path = create_fake_lib_c.run(intermediate_dir)
+        fake_libc_path = create_fake_lib_c.run(temp_directory)
 
         if include_path_env_key not in os.environ:
             os.environ[include_path_env_key] = ''
@@ -178,14 +217,14 @@ def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_priva
 
         cparser = pycparser.CParser()
         ast = cparser.parse(pp_data, target_header)
-        doxyfile_src_file = os.path.join(docs_path, doxyfile_filename)
 
-        ast.setup_docs(no_docstrings, lvgl_src_dir,
-                       intermediate_dir, doxyfile_src_file, output_to_stdout)
+        ast.setup_docs(temp_directory)
 
         if not output_to_stdout and output_path is None:
+            # stdout.reset()
+
             if not DEVELOP:
-                shutil.rmtree(intermediate_dir)
+                shutil.rmtree(temp_directory)
 
             return ast
 
@@ -201,7 +240,17 @@ def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_priva
             with open(output_path, 'w') as f:
                 f.write(json.dumps(ast.to_dict(), indent=4))
 
+            # stdout.reset()
+
+        if not output_to_stdout:
+            event.set()  # NOQA
+            t.join()  # NOQA
     except Exception as err:
+        if not output_to_stdout:
+            event.set()  # NOQA
+            t.join()  # NOQA
+
+        print()
         try:
             print(cpp_cmd)  # NOQA
             print()
@@ -262,9 +311,9 @@ def run(output_path, lv_conf_file, output_to_stdout, target_header, filter_priva
         error = 0
 
     if DEVELOP:
-        print('temporary file path:', intermediate_dir)
+        print('temporary file path:', temp_directory)
     else:
-        shutil.rmtree(intermediate_dir)
+        shutil.rmtree(temp_directory)
 
     sys.exit(error)
 
@@ -313,17 +362,11 @@ if __name__ == '__main__':
             "using this feature."
         ),
         action="store",
-        default=os.path.join(intermediate_dir, "lvgl", "lvgl.h")
+        default=os.path.join(temp_directory, "lvgl", "lvgl.h")
     )
     parser.add_argument(
         '--filter-private',
         dest='filter_private',
-        help='Internal Use',
-        action='store_true',
-    )
-    parser.add_argument(
-        '--no-docstrings',
-        dest='no_docstrings',
         help='Internal Use',
         action='store_true',
     )
@@ -332,4 +375,4 @@ if __name__ == '__main__':
 
     DEVELOP = args.develop
 
-    run(args.output_path, args.lv_conf, args.output_path is None, args.target_header, args.filter_private, args.no_docstrings, *extra_args)
+    run(args.output_path, args.lv_conf, args.output_path is None, args.target_header, args.filter_private, *extra_args)

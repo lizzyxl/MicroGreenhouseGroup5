@@ -1,5 +1,6 @@
 #if LV_BUILD_TEST
 #include "../lvgl.h"
+#include "../lv_test_indev.h"
 #include "unity/unity.h"
 
 #define TEST_HOVER_COUNTS   20
@@ -45,7 +46,7 @@ static void test_move_mouse(lv_point_t * point, uint8_t size)
     for(uint8_t j = 0; j < TEST_HOVER_COUNTS; j++) {
         for(uint8_t i = 0; i < size; i++) {
             lv_test_mouse_move_to(p[i].x, p[i].y);
-            lv_test_wait(50);
+            lv_test_indev_wait(50);
         }
     }
 }
@@ -85,10 +86,10 @@ void test_hover_delete(void)
         lv_obj_set_size(btn, 200, 100);
 
         lv_test_mouse_move_to(i * 10, 50);
-        lv_test_wait(50);
+        lv_test_indev_wait(50);
 
         lv_obj_delete(btn);  /*No crash while deleting the hovered button*/
-        lv_test_wait(50);
+        lv_test_indev_wait(50);
     }
 }
 

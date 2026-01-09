@@ -12,8 +12,3 @@ Loader with Arc
 .. lv_example:: widgets/arc/lv_example_arc_2
   :language: c
 
-Pie Chart with clickable slices using Arcs
-------------------------------------------
-
-.. lv_example:: widgets/arc/lv_example_arc_3
-  :language: c
