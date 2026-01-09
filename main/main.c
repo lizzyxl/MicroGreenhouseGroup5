@@ -24,7 +24,7 @@ void app_main(void)
     ldr_init();
     grow_light_init();
     greenhouse_display_init();
-    input_init();
+    inputs_init();
 
     ESP_LOGI(TAG, "Initializing components completed");
 
@@ -33,7 +33,7 @@ void app_main(void)
     float relative_humidity = 0;
     int light = 0;
 
-    int button_press;
+    bool button_press;
 
     measurements_t current_measurements = {
         .temperature = 0,
@@ -49,13 +49,15 @@ void app_main(void)
         if (now - last_measurement_time >= MEASUREMENT_INTERVAL_MS) {
             // sensor measurements
             soil_moisture = 0;
-            light = 0;
+            light = ldr_read_raw();
             //dht11_read(&temperature, &relative_humidity);
 
             current_measurements.temperature = temperature;
             current_measurements.soil_moisture = soil_moisture;
             current_measurements.relative_humidity = relative_humidity;
             current_measurements.light = light;
+
+            ESP_LOGI(TAG, "Measurment taken: temperature: %.2f C, relative humidity: %.2f %%, soil moisture: %.2f, light intensity: %d", current_measurements.temperature, current_measurements.relative_humidity, current_measurements.soil_moisture, current_measurements.light = light);
             
             // Cloud update (TODO)
 

@@ -206,14 +206,13 @@ void ui_init_once(void)
     lv_obj_set_style_text_font(measurment_value_label, &lv_font_unscii_16, 0);
 }
 
-void display_draw(measurements_t *measurements, int button_press) {
+void display_draw(measurements_t *measurements, bool button_press) {
     _lock_acquire(&lvgl_api_lock);
     ui_init_once();
 
     static int cycle_screen = 0;
-    static int last_button_press = 0;
 
-    if (button_press == 0 && last_button_press == 1) {
+    if (button_press) {
         cycle_screen++;
         if (cycle_screen > MAX_SCREENS-1) {
             cycle_screen = 0;
@@ -223,11 +222,11 @@ void display_draw(measurements_t *measurements, int button_press) {
     switch (cycle_screen) {
         case 0: //temp
             lv_label_set_text_fmt(measurment_description_label, "Temperature");
-            lv_label_set_text_fmt(measurment_value_label, "%.2f °C", measurements->temperature);
+            lv_label_set_text_fmt(measurment_value_label, "%dC", (int)measurements->temperature);
             break;
         case 1: //relative humidtiy
             lv_label_set_text_fmt(measurment_description_label, "Relative Humidity");
-            lv_label_set_text_fmt(measurment_value_label, "%.2f %%", measurements->relative_humidity);
+            lv_label_set_text_fmt(measurment_value_label, "%d%%", (int)measurements->relative_humidity);
             break;
         case 2: //light
             lv_label_set_text_fmt(measurment_description_label, "Light Intensity");
@@ -235,7 +234,7 @@ void display_draw(measurements_t *measurements, int button_press) {
             break;
         case 3: //soil moisture
             lv_label_set_text_fmt(measurment_description_label, "Soil Moisture");
-            lv_label_set_text_fmt(measurment_value_label, "%.2f", measurements->soil_moisture);
+            lv_label_set_text_fmt(measurment_value_label, "%d", (int)measurements->soil_moisture);
             break;
         default:
             break;
