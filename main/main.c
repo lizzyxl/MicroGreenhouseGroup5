@@ -6,6 +6,8 @@
 #include "utils.h"
 #include "display.h"
 #include "temp_hum_sensor.h"
+#include "light_sensor.h"
+#include "inputs.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define MEASUREMENT_INTERVAL_MS 1000
@@ -19,8 +21,10 @@ void app_main(void)
     // Initialize components
     fan_init();
     pump_init();
+    ldr_init();
     grow_light_init();
     greenhouse_display_init();
+    input_init();
 
     ESP_LOGI(TAG, "Initializing components completed");
 
@@ -67,7 +71,7 @@ void app_main(void)
         // outputs
         if (now - last_display_time >= DISPLAY_INTERVAL_MS) {
             // button input
-            button_press = 0;
+            button_press = input_button_pressed();
             //draw display
             display_draw(&current_measurements, button_press);
             
