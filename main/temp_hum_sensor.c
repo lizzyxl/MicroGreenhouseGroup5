@@ -3,12 +3,6 @@
 #include <freertos/task.h>
 #include "dht.h"
 
-void dht11_init()
-{
-    // Enable pull-up resistor on the DHT data pin
-    //gpio_set_pull_mode(DHT_GPIO, GPIO_PULLUP_ONLY);
-}
-
 void dht11_read(float *temperature, float *humidity)
 {
     // Read humidity and temperature from the sensor
