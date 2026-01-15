@@ -14,6 +14,10 @@
 #define MEASUREMENT_INTERVAL_MS 1000
 #define DISPLAY_INTERVAL_MS 100
 
+typedef struct {
+    uint32_t measurement_interval_ms;
+} greenhouse_config_t;
+
 static uint32_t last_measurement_time = 0;
 static uint32_t last_display_time = 0;
 
@@ -24,8 +28,8 @@ void app_main(void)
     pump_init();
     ldr_init();
     grow_light_init();
-    greenhouse_display_init();
-    inputs_init();
+    //greenhouse_display_init();
+    //inputs_init();
     soil_sensor_init();
 
     ESP_LOGI(TAG, "Initializing components completed");
@@ -36,6 +40,10 @@ void app_main(void)
     int light = 0;
 
     bool button_press;
+
+    greenhouse_config_t config = {
+        .measurement_interval_ms = 1000,
+    };
 
     measurements_t current_measurements = {
         .temperature = 0,
@@ -53,7 +61,7 @@ void app_main(void)
             soil_data_t soil = soil_sensor_read();
             soil_moisture = (float)soil.moisture_percent;
             light = ldr_read_raw();
-            //dht11_read(&temperature, &relative_humidity);
+            dht11_read(&temperature, &relative_humidity);
 
             current_measurements.temperature = temperature;
             current_measurements.soil_moisture = soil_moisture;
@@ -66,9 +74,9 @@ void app_main(void)
 
             // actuators
             fan_control(temperature);
-            current_moisture_led_state = pump_control(soil_moisture);
+            //current_moisture_led_state = pump_control(soil_moisture);
             grow_light_control(light);
-            moisture_led_control(current_moisture_led_state);
+            //moisture_led_control(current_moisture_led_state);
 
             last_measurement_time = now;
         }
@@ -78,7 +86,7 @@ void app_main(void)
             // button input
             button_press = input_button_pressed();
             //draw display
-            display_draw(&current_measurements, button_press);
+            //display_draw(&current_measurements, button_press);
             
             last_display_time = now;
         }

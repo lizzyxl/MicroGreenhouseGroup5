@@ -5,7 +5,7 @@
 #include "freertos/FreeRTOS.h"
 
 // Config
-#define FAN_GPIO GPIO_NUM_13
+#define FAN_GPIO GPIO_NUM_26
 #define FAN_TEMP_HIGHER_THRESHOLD 25.0f
 #define FAN_TEMP_LOWER_THRESHOLD 20.0f
 
