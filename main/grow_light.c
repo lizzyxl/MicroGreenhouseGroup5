@@ -4,8 +4,9 @@
 #include "freertos/task.h"
 #include "grow_light.h"
 #include "esp_log.h"
+#include "config.h"
 
-#define IR_LED_GPIO      GPIO_NUM_25
+
 #define LIGHT_THRESHOLD  1500
 
 #define TAG "GROW_LIGHT"

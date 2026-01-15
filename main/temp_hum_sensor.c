@@ -2,6 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "dht.h"
+#include "config.h"
 
 void dht11_read(float *temperature, float *humidity)
 {

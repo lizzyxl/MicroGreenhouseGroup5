@@ -1,11 +1,10 @@
 #include "inputs.h"
 #include "esp_timer.h"
-
+#include "config.h
+"
 // Button configuration
-#define BUTTON_PIN_WHITE          GPIO_NUM_13
-#define BUTTON_PIN_BLUE          GPIO_NUM_21
 #define DEBOUNCE_TIME_MS    50
-#define RED_WIFI_LED GPIO_NUM_12
+
 
 static int last_state = 1;          // pull-up = idle high
 static int stable_state = 1;

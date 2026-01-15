@@ -9,6 +9,7 @@
 #include "light_sensor.h"
 #include "inputs.h"
 #include "soil_moisture.h"
+#include "config.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define MEASUREMENT_INTERVAL_MS 1000

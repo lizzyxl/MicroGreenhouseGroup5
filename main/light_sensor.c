@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "light_sensor.h"
-
+#include "config.h"
 static adc_oneshot_unit_handle_t adc_handle;
 static adc_cali_handle_t adc_cali_handle;
 static bool cali_enabled = false;

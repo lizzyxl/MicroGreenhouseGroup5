@@ -6,7 +6,7 @@
 #include "esp_adc/adc_cali_scheme.h"
 
 #define TAG "SOIL"
-#define SOIL_ADC_CHANNEL ADC1_CHANNEL_1   // GPIO37
+
 
 static adc_oneshot_unit_handle_t adc_handle;
 static adc_cali_handle_t cali_handle;

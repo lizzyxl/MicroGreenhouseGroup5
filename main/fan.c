@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "driver/gpio.h"
+#include "config.h"
 
 #define TAG "FAN_CONTROL"
 

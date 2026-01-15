@@ -14,13 +14,12 @@
 #include <sys/param.h>
 #include "display.h"
 #include "utils.h"
+#include "config.h"
 
 #define TAG "DISPLAY"
 
 #define I2C_BUS_PORT           0
 #define LCD_PIXEL_CLOCK_HZ     (400 * 1000)
-#define PIN_NUM_SDA            21 // SDA GPIO
-#define PIN_NUM_SCL            22 // SCL GPIO
 #define PIN_NUM_RST            -1
 #define I2C_HW_ADDR            0x3C // OLED address
 #define LCD_H_RES              128 //Screen width

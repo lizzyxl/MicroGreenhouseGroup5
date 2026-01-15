@@ -1,4 +1,5 @@
-#define DHT_GPIO 27
+
+
 #define SENSOR_TYPE DHT_TYPE_DHT11
 
 void dht11_init();
