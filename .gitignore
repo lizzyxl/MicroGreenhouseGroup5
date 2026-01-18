@@ -17,6 +17,9 @@
 *.dll
 *.dylib
 
+#Old config
+*.old
+
 # Build directories
 build/
 dist/
@@ -43,3 +46,7 @@ Makefile
 
 # Misc
 *.log
+
+# MQTT / TLS certificates
+main/certs/
+
