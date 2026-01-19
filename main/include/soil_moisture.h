@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOIL_MOISTURE_H
+#define SOIL_MOISTURE_H
 
 typedef struct {
     int raw;
@@ -7,4 +8,6 @@ typedef struct {
 } soil_data_t;
 
 void soil_sensor_init(void);
-soil_data_t soil_sensor_read(void);
+int soil_sensor_read(void);
+
+#endif

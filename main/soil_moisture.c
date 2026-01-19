@@ -4,9 +4,9 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
+#include "config.h"
 
-#define TAG "SOIL"
-
+#define TAG "SOIL_MOISTURE_SENSOR"
 
 static adc_oneshot_unit_handle_t adc_handle;
 static adc_cali_handle_t cali_handle;
@@ -37,25 +37,22 @@ void soil_sensor_init(void)
     };
     adc_cali_create_scheme_line_fitting(&cali_config, &cali_handle);
 
-    ESP_LOGI(TAG, "Soil sensor initialized");
+    ESP_LOGI(TAG, "Soil moisture sensor initialized");
 }
 
-soil_data_t soil_sensor_read(void)
+int soil_sensor_read(void)
 {
-    soil_data_t data;
-    data.raw = 0;
-    data.voltage_mv = 0;
-    data.moisture_percent = 0;
+    int raw = 0;
+    int voltage_mv = 0;
+    int moisture_percent = 0;
 
-    adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &data.raw);
+    adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &raw);
 
-    adc_cali_raw_to_voltage(cali_handle, data.raw, &data.voltage_mv);
+    adc_cali_raw_to_voltage(cali_handle, raw, &voltage_mv);
 
-    int percent = map_value(data.raw, 4095, 1200, 0, 100);
+    int percent = map_value(raw, 4095, 1200, 0, 100);
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
 
-    data.moisture_percent = percent;
-
-    return data;
+    return percent;
 }

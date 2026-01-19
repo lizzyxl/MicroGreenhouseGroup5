@@ -229,7 +229,7 @@ void display_draw(measurements_t *measurements, bool button_press) {
             break;
         case 2: //light
             lv_label_set_text_fmt(measurment_description_label, "Light Intensity");
-            lv_label_set_text_fmt(measurment_value_label, "%d", measurements->light);
+            lv_label_set_text_fmt(measurment_value_label, "%d%%", (int)measurements->light);
             break;
         case 3: //soil moisture
             lv_label_set_text_fmt(measurment_description_label, "Soil Moisture");

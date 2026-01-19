@@ -8,14 +8,14 @@
 
 #define TAG "FAN_CONTROL"
 
-void fan_control(float temperature) {
+void fan_control(float temperature, float temp_higher_treshold, float temp_lower_treshold) {
     static bool fan_state = false;
 
-    if (temperature >= FAN_TEMP_HIGHER_THRESHOLD && !fan_state) {
+    if (temperature >= temp_higher_treshold && !fan_state) {
         gpio_set_level(FAN_GPIO, 0); // reversed due to relay
         fan_state = true;
         ESP_LOGI(TAG, "FAN ON");
-    } else if (temperature <= FAN_TEMP_LOWER_THRESHOLD && fan_state) {
+    } else if (temperature <= temp_lower_treshold && fan_state) {
         gpio_set_level(FAN_GPIO, 1); // reversed due to relay
         fan_state = false;
         ESP_LOGI(TAG, "FAN OFF");

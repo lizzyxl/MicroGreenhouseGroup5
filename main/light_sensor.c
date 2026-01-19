@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "light_sensor.h"
 #include "config.h"
+#include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+
 static adc_oneshot_unit_handle_t adc_handle;
 static adc_cali_handle_t adc_cali_handle;
 static bool cali_enabled = false;
@@ -43,6 +46,18 @@ int ldr_read_raw(void)
     if (adc_oneshot_read(adc_handle, ADC_CHANNEL, &raw) == ESP_OK)
     {
         return raw;
+    }
+    return -1; // return -1 if reading failed
+}
+
+// Read raw ADC value from LDR
+float ldr_read_percent(void)
+{
+    int raw = 0;
+    // Try to read the raw ADC value fom channel 2 (GPIO2)
+    if (adc_oneshot_read(adc_handle, ADC_CHANNEL, &raw) == ESP_OK)
+    {
+        return raw / 4095.0f * 100.0f;
     }
     return -1; // return -1 if reading failed
 }

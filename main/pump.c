@@ -6,67 +6,28 @@
 #include "freertos/queue.h"
 #include "driver/gpio.h"
 #include "config.h"
+#include "outputs.h"
 
 #define TAG "PUMP_CONTROL"
 
-static volatile bool water_empty = false;
-
-void moisture_led_control(led_state moisture_led_state) {
-    static int64_t last_blink_time = 0; 
-    int64_t now;
-    static bool blink_state = false;
-    
-    switch (moisture_led_state) {
-        case LED_OFF:
-            gpio_set_level(MOISTURE_LED, 0);
-            break;
-        case LED_ON:
-            gpio_set_level(MOISTURE_LED, 1);
-            break;
-        case LED_BLINKING:
-            now = esp_timer_get_time() / 1000;
-            if (now - last_blink_time >= BLINK_INTERVAL_MS) {
-                blink_state = !blink_state;
-                gpio_set_level(MOISTURE_LED, blink_state);
-                last_blink_time = now;
-            }
-            break;
-    }
-}
-
-led_state pump_control(float moisture) {
+led_state pump_control(float moisture, float soilmoist_lower_treshold_pct, float soilmoist_higher_treshold_pct) {
     led_state current_moisture_led_state = LED_OFF;
     static float pump_start_moisture = 0;
     static int64_t pump_start_time = 0;
     static bool pump_state = false;
 
-    if (pump_state && water_empty) { //check if water is empty and pump is on
-        gpio_set_level(PUMP_GPIO, 1);
-        pump_state = false;
-        current_moisture_led_state = LED_BLINKING;
-        ESP_LOGI(TAG, "PUMP OFF (Water empty)");
-    } else if (moisture <= PUMP_MOIST_LOWER_THRESHOLD && !pump_state && !water_empty) { //check lower treshold 
+    if (moisture <= soilmoist_lower_treshold_pct && !pump_state) { //check lower treshold 
         gpio_set_level(PUMP_GPIO, 0);
         pump_state = true;
         ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
         pump_start_time = esp_timer_get_time() / 1000;
         pump_start_moisture = moisture;
         current_moisture_led_state = LED_ON;
-    } else if (moisture >= PUMP_MOIST_HIGHER_THRESHOLD && pump_state && !water_empty) { //check higher treshold
+    } else if (moisture >= soilmoist_higher_treshold_pct && pump_state) { //check higher treshold
         gpio_set_level(PUMP_GPIO, 1);
         pump_state = false;
         ESP_LOGI(TAG, "PUMP OFF (Moisture in optimal range)");
         current_moisture_led_state = LED_OFF;
-    }
-    
-    if (pump_state && !water_empty) {
-        int64_t now_ms = esp_timer_get_time() / 1000;
-        if ((now_ms - pump_start_time) > RESERVOIR_EMPTY_TIMEOUT) {
-            float moisture_change = pump_start_moisture - moisture;
-            if (moisture_change < RESERVOIR_EMPTY_TRESHOLD) {
-                water_empty = true;
-            }
-        }
     }
 
     return current_moisture_led_state;
@@ -83,15 +44,5 @@ void pump_init(void) {
     gpio_config(&io_conf_pump);
     gpio_set_level(PUMP_GPIO, 0);
     
-    gpio_config_t io_conf_led = {
-        .pin_bit_mask = (1ULL << MOISTURE_LED),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    gpio_config(&io_conf_led);
-    gpio_set_level(MOISTURE_LED, 0);
-    
-    ESP_LOGI(TAG, "Pump and moisture LED GPIO configured");
+    ESP_LOGI(TAG, "Pump configured");
 }

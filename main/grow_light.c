@@ -6,30 +6,26 @@
 #include "esp_log.h"
 #include "config.h"
 
-
-#define LIGHT_THRESHOLD  1500
-
 #define TAG "GROW_LIGHT"
 
 void grow_light_init(void) {
-    gpio_reset_pin(IR_LED_GPIO);
-    gpio_set_direction(IR_LED_GPIO, GPIO_MODE_OUTPUT);
-    gpio_set_level(IR_LED_GPIO, 0);
-    ESP_LOGI(TAG, "Initialized on GPIO %d\n", IR_LED_GPIO);
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << GROW_LIGHT_GPIO),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(GROW_LIGHT_GPIO, 0);
+
+    ESP_LOGI(TAG, "Grow Light configured");
 }
 
-void grow_light_control(int light_level) {
-    if (light_level < LIGHT_THRESHOLD) {
-        gpio_set_level(IR_LED_GPIO, 1);
+void grow_light_control(float light_level, float light_threshold) {
+    if (light_level < light_threshold) {
+        gpio_set_level(GROW_LIGHT_GPIO, 1);
     } else {
-        gpio_set_level(IR_LED_GPIO, 0);
-    }
-}
-
-void grow_light_task(void *pvParameters) {
-    while (1) {
-        int current_light = 0;
-        grow_light_control(current_light);
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        gpio_set_level(GROW_LIGHT_GPIO, 0);
     }
 }
