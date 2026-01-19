@@ -12,16 +12,12 @@
 
 led_state pump_control(float moisture, float soilmoist_lower_treshold_pct, float soilmoist_higher_treshold_pct) {
     led_state current_moisture_led_state = LED_OFF;
-    static float pump_start_moisture = 0;
-    static int64_t pump_start_time = 0;
     static bool pump_state = false;
 
     if (moisture <= soilmoist_lower_treshold_pct && !pump_state) { //check lower treshold 
         gpio_set_level(PUMP_GPIO, 0);
         pump_state = true;
         ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
-        pump_start_time = esp_timer_get_time() / 1000;
-        pump_start_moisture = moisture;
         current_moisture_led_state = LED_ON;
     } else if (moisture >= soilmoist_higher_treshold_pct && pump_state) { //check higher treshold
         gpio_set_level(PUMP_GPIO, 1);
