@@ -62,7 +62,7 @@ void reset_to_default_config(greenhouse_config_t *config) {
 
 void app_main(void)
 {   
-    //greenhouse_display_init();
+    greenhouse_display_init();
     // Initialize components
     fan_init();
     pump_init();
@@ -104,10 +104,6 @@ void app_main(void)
         // outputs
         if (now - last_display_time >= DISPLAY_INTERVAL_MS) {
             // button input
-            if (white_button_pressed) {
-                ESP_LOGI(TAG, "Switching display");
-                white_button_pressed = false;
-            }
 
             if (blue_button_pressed) {
                 ESP_LOGI(TAG, "Taking extra measurement");
@@ -120,7 +116,7 @@ void app_main(void)
             red_connection_led_control(current_moisture_led_state);
 
             //draw display
-            //display_draw(&current_measurements, button_press);
+            display_draw(&current_measurements, &white_button_pressed);
             
             last_display_time = now;
         }

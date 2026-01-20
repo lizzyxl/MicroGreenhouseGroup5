@@ -1,2 +1,2 @@
-idf_component_register(SRCS "outputs.c" "soil_moisture.c" "temp_hum_sensor.c" "main.c" "fan.c" "pump.c" "display.c" "grow_light.c" "inputs.c" "light_sensor.c" 
+idf_component_register(SRCS "display.c" "outputs.c" "soil_moisture.c" "temp_hum_sensor.c" "main.c" "fan.c" "pump.c" "grow_light.c" "inputs.c" "light_sensor.c" 
                     INCLUDE_DIRS "." "include")
