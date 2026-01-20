@@ -44,7 +44,6 @@ int soil_sensor_read(void)
 {
     int raw = 0;
     int voltage_mv = 0;
-    int moisture_percent = 0;
 
     adc_oneshot_read(adc_handle, SOIL_ADC_CHANNEL, &raw);
 
