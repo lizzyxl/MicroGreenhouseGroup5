@@ -1,9 +1,5 @@
-#ifndef TEMP_HUM_SENSOR_H
-#define TEMP_HUM_SENSOR_H
+#define I2C_MASTER_FREQ_HZ 100000     /*!< I2C master clock frequency */
+static const char *TAG = "aht20 test";
 
-#define SENSOR_TYPE DHT_TYPE_DHT11
-
-void dht11_init();
-void dht11_read(float *temperature, float *humidity);
-
-#endif
+void aht20_init();
+void aht20_read(float *temperature, float *humidity);

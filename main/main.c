@@ -49,7 +49,8 @@ static uint32_t last_display_time = 0;
 void take_measurement (measurements_t *measurment) {
     measurment->soil_moisture = soil_sensor_read();
     measurment->light = ldr_read_percent();
-    dht11_read(&measurment->temperature, &measurment->relative_humidity);
+    aht20_init();
+    aht20_read(&measurment->temperature, &measurment->relative_humidity);
 
     ESP_LOGI(TAG, "Measurement taken: temperature: %.2f C, relative humidity: %.2f %%, soil moisture: %.2f %%, light intensity: %.2f %%", measurment->temperature, measurment->relative_humidity, measurment->soil_moisture, measurment->light);
             
