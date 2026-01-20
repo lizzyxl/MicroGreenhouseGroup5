@@ -8,7 +8,7 @@
 
 #define TAG "FAN_CONTROL"
 
-void fan_control(float temperature, float temp_higher_treshold, float temp_lower_treshold) {
+void fan_control(float temperature, float temp_lower_treshold, float temp_higher_treshold) {
     static bool fan_state = false;
 
     if (temperature >= temp_higher_treshold && !fan_state) {

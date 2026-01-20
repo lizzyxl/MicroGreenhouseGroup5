@@ -21,14 +21,14 @@ void ldr_init(void)
     // Configure ADC channel settings
     adc_oneshot_chan_cfg_t chan_config = {
         .bitwidth = ADC_BITWIDTH_12, // 12-bit resolution (0-4095)
-        .atten = ADC_ATTEN_DB_11,
+        .atten = ADC_ATTEN_DB_12,
     };
     adc_oneshot_config_channel(adc_handle, ADC_CHANNEL, &chan_config);
 
     // Configure calibration (maps raw ADC values to voltage)
     adc_cali_line_fitting_config_t cali_config = {
         .unit_id = ADC_UNIT,
-        .atten = ADC_ATTEN_DB_11,
+        .atten = ADC_ATTEN_DB_12,
         .bitwidth = ADC_BITWIDTH_12,
     };
     // If calibration is available, enable it
