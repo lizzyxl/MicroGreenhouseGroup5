@@ -6,6 +6,8 @@
 
 // Public functions
 void inputs_init(void);
-bool input_button_pressed(void);
+
+bool input_button_pressed_white(void);
+bool input_button_pressed_blue(void);
 
 #endif
