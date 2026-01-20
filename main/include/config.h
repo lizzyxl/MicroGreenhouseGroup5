@@ -8,16 +8,12 @@
 #define DHT_GPIO                  GPIO_NUM_27
 #define PUMP_GPIO                 GPIO_NUM_15
 #define MOISTURE_LED              GPIO_NUM_17
-#define SOIL_ADC_CHANNEL          ADC1_CHANNEL_1   // GPIO37
-#define ADC_CHANNEL               ADC_CHANNEL_9    // GPIO33 for LDR
+#define SOIL_ADC_CHANNEL          ADC1_CHANNEL_4   // GPIO32
+#define ADC_CHANNEL               ADC_CHANNEL_0    // GPIO4 for LDR
 #define ADC_UNIT                  ADC_UNIT_2       // ADC2 for LDR
-
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_22 /*!< gpio number for I2C master clock */
 #define I2C_MASTER_SDA_IO GPIO_NUM_21 /*!< gpio number for I2C master data  */
 #define I2C_MASTER_NUM I2C_NUM_0      /*!< I2C port number for master dev */
 
-#define MOISTURE_LED              GPIO_NUM_19
-#define SOIL_ADC_CHANNEL          ADC1_CHANNEL_4   // GPIO32
-#define ADC_CHANNEL               ADC_CHANNEL_0    // GPIO33 for LDR
-#define ADC_UNIT                  ADC_UNIT_2       // ADC2 for LDR
+

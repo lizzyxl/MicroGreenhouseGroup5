@@ -32,7 +32,6 @@
 #define PARALLEL_LINES 16
 
 void greenhouse_display_init(void) {
-    // All previous layers (unchanged) - keep exactly as Step 5
     gpio_config_t bk_gpio_config = {
         .mode = GPIO_MODE_OUTPUT,
         .pin_bit_mask = 1ULL << LCD_BL_GPIO
@@ -70,7 +69,6 @@ void greenhouse_display_init(void) {
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
 
-    // Basic panel operations (already working)
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     vTaskDelay(pdMS_TO_TICKS(100));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
@@ -85,22 +83,21 @@ void greenhouse_display_init(void) {
     
     ESP_LOGI(TAG, "BASIC DISPLAY WORKING - NOW DRAWING");
 
-    // FIRST PIXEL DRAW - TOP LEFT CORNER ONLY
-    uint16_t *fb = heap_caps_malloc(64*32*sizeof(uint16_t), MALLOC_CAP_DMA);  // Small 64x32
+    uint16_t *fb = heap_caps_malloc(64*32*sizeof(uint16_t), MALLOC_CAP_DMA);
     if (fb) {
         ESP_LOGI(TAG, "DMA OK: %p", fb);
         
-        // Fill RED
+        // Fill red
         memset(fb, 0xF800, 64*32*2);
         esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, 64, 32, fb);
         
-        ESP_LOGI(TAG, "RED CORNER DRAWN - CHECK TOP LEFT");
+        ESP_LOGI(TAG, "RED CORNER DRAWN");
         heap_caps_free(fb);
     } else {
         ESP_LOGE(TAG, "DMA FAILED");
     }
     
-    ESP_LOGI(TAG, "DISPLAY FULLY WORKING!");
+    ESP_LOGI(TAG, "DISPLAY  WORKING");
 }
 
 
