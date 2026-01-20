@@ -42,3 +42,6 @@ Makefile
 # Misc
 *.log
 sdkconfig
+
+# Certs
+certs/
