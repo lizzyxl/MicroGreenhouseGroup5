@@ -38,7 +38,6 @@ typedef struct
     float fan_temp_higher_threshold_C;
     float fan_temp_lower_threshold_C;
     float pump_soilmoist_lower_threshold_pct;
-    float pump_soilmoist_higher_threshold_pct;
     float growlight_light_threshold_pct;
 } greenhouse_config_t;
 
@@ -47,7 +46,6 @@ const greenhouse_config_t default_config = {
     .fan_temp_lower_threshold_C = DEFAULT_FAN_TEMP_LOWER_THRESHOLD,
     .fan_temp_higher_threshold_C = DEFAULT_FAN_TEMP_HIGHER_THRESHOLD,
     .pump_soilmoist_lower_threshold_pct = DEFAULT_PUMP_SOILMOIST_LOWER_THRESHOLD,
-    .pump_soilmoist_higher_threshold_pct = DEFAULT_PUMP_SOILMOIST_HIGHER_THRESHOLD,
     .growlight_light_threshold_pct = DEFAULT_GROWLIGHT_LIGHT_THRESHOLD,
 };
 
@@ -72,7 +70,22 @@ void reset_to_default_config(greenhouse_config_t *config)
 
 void app_main(void)
 {   
+    // i2c init 
+    //i2c_bus_init();
+    //  Initialize sensors
+    ldr_init();
+    soil_sensor_init();
+    aht20_init();
+    // Initialize acctuators
+    fan_init();
+    pump_init();
+    grow_light_init();
+    // Initialize user Interface
+    greenhouse_display_init();
+    inputs_init();
+    outputs_init();
 
+    // Initialize Non volatile storage (to store credentials etc)
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
@@ -81,25 +94,17 @@ void app_main(void)
     }
 
     // WiFi init
-    ESP_LOGI(TAG, "Connecting to WiFi...");
-    ESP_ERROR_CHECK(wifi_init_sta(WIFI_SSID, WIFI_PASS));
-    ESP_LOGI(TAG, "WiFi connected");
+    esp_err_t ret1 = wifi_init_sta(WIFI_SSID, WIFI_PASS);
+    if (ret1 == ESP_OK) {
+        ESP_LOGI(TAG, "WiFi connected successfully");
+    } else {
+        ESP_LOGE(TAG, "WiFi connection FAILED (error: %s)", esp_err_to_name(ret));
+        set_red_connection_led(LED_ON);
+    }
 
     // MQTT init
     ESP_LOGI(TAG, "Starting MQTT...");
     ESP_ERROR_CHECK(mqtt_start());
-
-    greenhouse_display_init();
-    //  Initialize components
-    fan_init();
-    pump_init();
-    ldr_init();
-    grow_light_init();
-    inputs_init();
-    outputs_init();
-    soil_sensor_init();
-    aht20_init();
-
     ESP_LOGI(TAG, "Initializing of all components completed");
 
     measurements_t current_measurements = {
@@ -108,7 +113,6 @@ void app_main(void)
         .relative_humidity = 0,
         .light = 0,
     };
-    led_state current_moisture_led_state = LED_OFF;
 
     while (1)
     {
@@ -124,7 +128,7 @@ void app_main(void)
 
             // actuators
             fan_control(current_measurements.temperature, greenhouse_config.fan_temp_lower_threshold_C, greenhouse_config.fan_temp_higher_threshold_C);
-            current_moisture_led_state = pump_control(current_measurements.soil_moisture, greenhouse_config.pump_soilmoist_lower_threshold_pct, greenhouse_config.pump_soilmoist_higher_threshold_pct);
+            pump_control(current_measurements.soil_moisture, greenhouse_config.pump_soilmoist_lower_threshold_pct);
             grow_light_control(current_measurements.light, greenhouse_config.growlight_light_threshold_pct);
 
             last_measurement_time = now;
@@ -133,26 +137,18 @@ void app_main(void)
         // outputs
         if (now - last_display_time >= DISPLAY_INTERVAL_MS)
         {
-            // button input
-            if (white_button_pressed)
-            {
-                ESP_LOGI(TAG, "Switching display");
-                white_button_pressed = false;
-            }
-
-            if (blue_button_pressed)
+            if (get_blue_button_pressed())
             {
                 ESP_LOGI(TAG, "Taking extra measurement");
                 take_measurement(&current_measurements);
-                blue_button_pressed = false;
             }
 
             // leds
-            green_moisture_led_control(current_moisture_led_state);
-            red_connection_led_control(current_moisture_led_state);
+            green_moisture_led_control();
+            red_connection_led_control();
 
             //draw display
-            display_draw(&current_measurements, &white_button_pressed);
+            display_draw(&current_measurements, get_white_button_pressed());
             
             last_display_time = now;
         }

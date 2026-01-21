@@ -205,15 +205,14 @@ void ui_init_once(void)
     lv_obj_set_style_text_font(measurment_value_label, &lv_font_unscii_16, 0);
 }
 
-void display_draw(measurements_t *measurements, bool *button_press) {
+void display_draw(measurements_t *measurements, bool button_press) {
     _lock_acquire(&lvgl_api_lock);
     ui_init_once();
 
     static int cycle_screen = 0;
 
-    if (*button_press) {
+    if (button_press) {
         ESP_LOGI(TAG, "Switching display");
-        *button_press = false;
         cycle_screen++;
         if (cycle_screen > MAX_SCREENS-1) {
             cycle_screen = 0;

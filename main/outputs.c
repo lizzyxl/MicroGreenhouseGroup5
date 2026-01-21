@@ -4,6 +4,9 @@
 
 #define BLINK_INTERVAL_MS 1000 //blink intervall of led
 
+static led_state red_led_target_state = LED_OFF;
+static led_state green_led_target_state = LED_OFF;
+
 void outputs_init(void)
 {
     gpio_config_t io_conf_led_red = {
@@ -27,12 +30,20 @@ void outputs_init(void)
     gpio_set_level(MOISTURE_LED, 0);
 }
 
-void red_connection_led_control(led_state connection_led_state) {
+void set_red_connection_led(led_state state) {
+    red_led_target_state = state;
+}
+
+void set_green_moisture_led(led_state state) {
+    green_led_target_state = state;
+}
+
+void red_connection_led_control() {
     static int64_t last_blink_time = 0; 
     int64_t now;
     static bool blink_state = false;
     
-    switch (connection_led_state) {
+    switch (red_led_target_state) {
         case LED_OFF:
             gpio_set_level(RED_WIFI_LED, 0);
             break;
@@ -50,12 +61,12 @@ void red_connection_led_control(led_state connection_led_state) {
     }
 }
 
-void green_moisture_led_control(led_state moisture_led_state) {
+void green_moisture_led_control() {
     static int64_t last_blink_time = 0; 
     int64_t now;
     static bool blink_state = false;
     
-    switch (moisture_led_state) {
+    switch (green_led_target_state) {
         case LED_OFF:
             gpio_set_level(MOISTURE_LED, 0);
             break;

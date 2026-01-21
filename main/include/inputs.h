@@ -6,8 +6,7 @@
 
 // Public functions
 void inputs_init(void);
-
-extern volatile bool blue_button_pressed;
-extern volatile bool white_button_pressed;
+bool get_blue_button_pressed();
+bool get_white_button_pressed();
 
 #endif

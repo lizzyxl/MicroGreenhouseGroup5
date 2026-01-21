@@ -5,12 +5,12 @@
 #include "freertos/FreeRTOS.h"
 
 // Button configuration
-#define DEBOUNCE_TIME_MS    100
+#define DEBOUNCE_TIME_MS    200
 
-volatile bool blue_button_pressed = false;
+static volatile bool blue_button_pressed = false;
 static volatile int blue_last_interrupt_time_ms = 0;
 
-volatile bool white_button_pressed = false;
+static volatile bool white_button_pressed = false;
 static volatile int white_last_interrupt_time_ms = 0;
 
 void IRAM_ATTR blue_button_isr_handler(void *arg) {
@@ -58,4 +58,16 @@ void inputs_init(void)
     gpio_install_isr_service(0);
     gpio_isr_handler_add(BUTTON_PIN_BLUE, blue_button_isr_handler, (void *) BUTTON_PIN_BLUE);
     gpio_isr_handler_add(BUTTON_PIN_WHITE, white_button_isr_handler, (void *) BUTTON_PIN_WHITE);
+}
+
+bool get_blue_button_pressed() {
+    if (!blue_button_pressed) return false;
+    blue_button_pressed = false;
+    return true;
+}
+
+bool get_white_button_pressed() {
+    if (!white_button_pressed) return false;
+    white_button_pressed = false;
+    return true;
 }

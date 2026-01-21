@@ -7,6 +7,6 @@
 
 // Public API
 void pump_init(void);
-led_state pump_control(float moisture, float soilmoist_lower_treshold_pct, float soilmoist_higher_treshold_pct);
+void pump_control(float moisture, float soilmoist_threshold_pct);
 
 #endif

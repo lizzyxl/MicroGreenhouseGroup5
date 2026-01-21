@@ -12,7 +12,9 @@ typedef enum {
 
 // Public functions
 void outputs_init(void);
-void red_connection_led_control(led_state moisture_led_state);
-void green_moisture_led_control(led_state moisture_led_state);
+void red_connection_led_control(void);
+void green_moisture_led_control(void);
+void set_red_connection_led(led_state state);
+void set_green_moisture_led(led_state state);
 
 #endif

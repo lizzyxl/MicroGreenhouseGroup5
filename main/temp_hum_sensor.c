@@ -2,10 +2,11 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <stdio.h>
-#include "unity.h"
 #include "aht20.h"
 #include "esp_system.h"
 #include "esp_log.h"
+#include "i2c_bus.h" 
+#include "driver/gpio.h" 
 #include "config.h"
 
 static i2c_bus_handle_t i2c_bus;
@@ -22,7 +23,6 @@ void aht20_init()
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = I2C_MASTER_FREQ_HZ};
     i2c_bus = i2c_bus_create(I2C_MASTER_NUM, &i2c_bus_conf);
-    TEST_ASSERT_NOT_NULL_MESSAGE(i2c_bus, "i2c_bus create returned NULL");
 
     aht20_i2c_config_t i2c_conf = {
         .bus_inst = i2c_bus,
