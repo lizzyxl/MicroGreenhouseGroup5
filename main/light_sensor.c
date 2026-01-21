@@ -3,31 +3,20 @@
 #include "config.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
+#include "esp_log.h"
+#include "adc.h"
 
-static adc_oneshot_unit_handle_t adc_handle;
+#define TAG "LIGHT_SENSOR"
+
 static adc_cali_handle_t adc_cali_handle;
 static bool cali_enabled = false;
 
 // Initialize the LDR sensor
 void ldr_init(void)
 {
-    // Configure ADC unit (ADC2 for GPIO2)
-    adc_oneshot_unit_init_cfg_t init_config = {
-        .unit_id = ADC_UNIT,
-        .ulp_mode = ADC_ULP_MODE_DISABLE,
-    };
-    adc_oneshot_new_unit(&init_config, &adc_handle);
-
-    // Configure ADC channel settings
-    adc_oneshot_chan_cfg_t chan_config = {
-        .bitwidth = ADC_BITWIDTH_12, // 12-bit resolution (0-4095)
-        .atten = ADC_ATTEN_DB_12,
-    };
-    adc_oneshot_config_channel(adc_handle, ADC_CHANNEL, &chan_config);
-
     // Configure calibration (maps raw ADC values to voltage)
     adc_cali_line_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT,
+        .unit_id = LDR_ADC_UNIT,
         .atten = ADC_ATTEN_DB_12,
         .bitwidth = ADC_BITWIDTH_12,
     };
@@ -42,8 +31,7 @@ void ldr_init(void)
 int ldr_read_raw(void)
 {
     int raw = 0;
-    // Try to read the raw ADC value fom channel 2 (GPIO2)
-    if (adc_oneshot_read(adc_handle, ADC_CHANNEL, &raw) == ESP_OK)
+    if (adc_oneshot_read(get_adc1_handle(), LDR_ADC_CHANNEL, &raw) == ESP_OK)
     {
         return raw;
     }
@@ -52,10 +40,9 @@ int ldr_read_raw(void)
 
 // Read raw ADC value from LDR
 float ldr_read_percent(void)
-{
+{   
     int raw = 0;
-    // Try to read the raw ADC value fom channel 2 (GPIO2)
-    if (adc_oneshot_read(adc_handle, ADC_CHANNEL, &raw) == ESP_OK)
+    if (adc_oneshot_read(get_adc1_handle(), LDR_ADC_CHANNEL, &raw) == ESP_OK)
     {
         return raw / 4095.0f * 100.0f;
     }

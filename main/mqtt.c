@@ -51,7 +51,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
 esp_err_t mqtt_start(void)
 {
-    // IMPORTANT: Use your namespace hostname here
     const char *uri = "mqtts://greenhouse-mqtt.norwayeast-1.ts.eventgrid.azure.net:8883";
 
     esp_mqtt_client_config_t cfg = {

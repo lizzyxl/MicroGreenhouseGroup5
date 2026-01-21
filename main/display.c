@@ -222,19 +222,19 @@ void display_draw(measurements_t *measurements, bool button_press) {
     switch (cycle_screen) {
         case 0: //temp
             lv_label_set_text_fmt(measurment_description_label, "Temperature");
-            lv_label_set_text_fmt(measurment_value_label, "%dC", (int)measurements->temperature);
+            lv_label_set_text_fmt(measurment_value_label, "%d.%dC", (int)measurements->temperature, (int)((measurements->temperature - (int)measurements->temperature) * 10));
             break;
         case 1: //relative humidtiy
-            lv_label_set_text_fmt(measurment_description_label, "Relative Humidity");
-            lv_label_set_text_fmt(measurment_value_label, "%d%%", (int)measurements->relative_humidity);
+            lv_label_set_text_fmt(measurment_description_label, "Rel. Humidity");
+            lv_label_set_text_fmt(measurment_value_label, "%d.%d%%", (int)measurements->relative_humidity, (int)((measurements->relative_humidity - (int)measurements->relative_humidity) * 10));
             break;
         case 2: //light
             lv_label_set_text_fmt(measurment_description_label, "Light Intensity");
-            lv_label_set_text_fmt(measurment_value_label, "%d%%", (int)measurements->light);
+            lv_label_set_text_fmt(measurment_value_label, "%d.%d%%", (int)measurements->light, (int)((measurements->light - (int)measurements->light) * 10));
             break;
         case 3: //soil moisture
             lv_label_set_text_fmt(measurment_description_label, "Soil Moisture");
-            lv_label_set_text_fmt(measurment_value_label, "%d", (int)measurements->soil_moisture);
+            lv_label_set_text_fmt(measurment_value_label, "%d.%d%%", (int)measurements->soil_moisture, (int)((measurements->soil_moisture - (int)measurements->soil_moisture) * 10));
             break;
         default:
             break;

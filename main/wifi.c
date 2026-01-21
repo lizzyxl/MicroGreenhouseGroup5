@@ -11,7 +11,7 @@
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
-#define MAX_RETRY 10
+#define MAX_RETRY 3
 
 static const char *TAG = "WIFI";
 
@@ -92,4 +92,8 @@ esp_err_t wifi_init_sta(const char *ssid, const char *pass)
 bool wifi_is_connected(void)
 {
     return s_connected;
+}
+
+esp_err_t wifi_reconnect(void) {
+    return esp_wifi_connect();
 }
