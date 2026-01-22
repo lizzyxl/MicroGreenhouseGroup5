@@ -85,7 +85,7 @@ void uart_config_task(void *arg) {
     };
     ESP_ERROR_CHECK(uart_param_config(UART_NUM_1, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM_1, UART_PIN_NO_CHANGE, 17, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_1, 32 * 2, 0, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_1, 256, 0, 20, NULL, 0));
     
     uint8_t data[512];
     int json_start = -1, json_len = 0;

@@ -69,6 +69,8 @@ esp_err_t wifi_init_sta(const char *ssid, const char *pass)
     wifi_config_t wifi_config = {0};
     strncpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
     strncpy((char *)wifi_config.sta.password, pass, sizeof(wifi_config.sta.password));
+    wifi_config.sta.pmf_cfg.capable = true;
+    wifi_config.sta.pmf_cfg.required = false;
     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
@@ -114,6 +116,8 @@ esp_err_t wifi_reconfigure(const char *new_ssid, const char *new_pass) {
     wifi_config_t wifi_config = {0};
     strncpy((char *)wifi_config.sta.ssid, new_ssid, sizeof(wifi_config.sta.ssid));
     strncpy((char *)wifi_config.sta.password, new_pass, sizeof(wifi_config.sta.password));
+    wifi_config.sta.pmf_cfg.capable = true;
+    wifi_config.sta.pmf_cfg.required = false;
     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));

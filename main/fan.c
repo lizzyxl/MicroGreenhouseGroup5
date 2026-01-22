@@ -9,7 +9,7 @@
 
 #define TAG "FAN_CONTROL"
 
-void fan_control(float temperature, greenhouse_config_t greenhouse_config) {
+void fan_control(float temperature, float humidity, greenhouse_config_t greenhouse_config) {
     static bool fan_state;
      if (greenhouse_config.fan_override) {
         // MANUAL override mode
@@ -17,10 +17,10 @@ void fan_control(float temperature, greenhouse_config_t greenhouse_config) {
         ESP_LOGI(TAG, "Manual override: %s", fan_state ? "ON" : "OFF");
     } else {
         // AUTO mode
-        if (temperature >= greenhouse_config.fan_temp_higher_threshold_C && !fan_state) {
+        if ((temperature >= greenhouse_config.fan_temp_higher_threshold_C || humidity >= greenhouse_config.fan_hum_higher_threshold_pct) && !fan_state) {
             fan_state = true;
             ESP_LOGI(TAG, "FAN ON");
-        } else if (temperature <= greenhouse_config.fan_temp_lower_threshold_C && fan_state) {
+        } else if (temperature <= greenhouse_config.fan_temp_lower_threshold_C &&  humidity <= greenhouse_config.fan_hum_lower_threshold_pct && fan_state) {
             fan_state = false;
             ESP_LOGI(TAG, "FAN OFF");
         }

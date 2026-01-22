@@ -59,7 +59,7 @@ void app_main(void)
     }
 
     // WiFi init
-    esp_err_t ret1 = wifi_init_sta(greenhouse_config.wifi_ssid, greenhouse_config.wifi_ssid);
+    esp_err_t ret1 = wifi_init_sta(greenhouse_config.wifi_ssid, greenhouse_config.wifi_password);
     if (ret1 == ESP_OK) {
         ESP_LOGI(TAG, "WiFi connected successfully");
     } else {
@@ -91,7 +91,7 @@ void app_main(void)
     {
         uint32_t now = esp_log_timestamp();
 
-        if (now - last_measurement_time >= greenhouse_config.measurement_interval_s/1000 || greenhouse_config.config_updated)
+        if (now - last_measurement_time >= greenhouse_config.measurement_interval_s*1000 || greenhouse_config.config_updated)
         {
             greenhouse_config.config_updated = false;
             // sensor measurements
@@ -134,7 +134,7 @@ void app_main(void)
             }
             
             // actuators
-            fan_control(current_measurements.temperature, greenhouse_config);
+            fan_control(current_measurements.temperature, current_measurements.relative_humidity, greenhouse_config);
             pump_control(current_measurements.soil_moisture, greenhouse_config);
             grow_light_control(current_measurements.light, greenhouse_config);
 
