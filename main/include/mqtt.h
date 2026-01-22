@@ -5,4 +5,3 @@
 esp_err_t mqtt_start(void);
 bool mqtt_is_connected(void);
 esp_err_t mqtt_publish(const char *topic, const char *payload, int qos, int retain);
-void parse_mqtt_config(const char *data, int data_len);

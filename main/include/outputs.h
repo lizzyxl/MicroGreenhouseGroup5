@@ -16,5 +16,6 @@ void red_connection_led_control(void);
 void green_moisture_led_control(void);
 void set_red_connection_led(led_state state);
 void set_green_moisture_led(led_state state);
+led_state get_green_moisture_led(void);
 
 #endif

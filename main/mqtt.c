@@ -39,7 +39,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "Topic: %.*s Data: %.*s", event->topic_len, event->topic, event->data_len, event->data);
         
         if (strncmp(event->topic, "greenhouse/config", event->topic_len) == 0) {
-            parse_mqtt_config(event->data, event->data_len);
+            parse_json_to_config(event->data, event->data_len);
         }
         break;
 
@@ -97,101 +97,4 @@ esp_err_t mqtt_publish(const char *topic, const char *payload, int qos, int reta
 
     int msg_id = esp_mqtt_client_publish(s_client, topic, payload, 0, qos, retain);
     return (msg_id >= 0) ? ESP_OK : ESP_FAIL;
-}
-
-void parse_mqtt_config(const char *data, int len) {
-    char *json = malloc(len + 1);
-    if (!json) return;
-    
-    strncpy(json, data, len);
-    json[len] = '\0';
-    
- 
-    // Parse JSON-like strings: "interval:5000,temp_high:25.0,temp_low:20.0,soil_low:30.0,light:40.0"
-   
-    char *token = strtok(json, ",");
-    while (token) {
-        if (strstr(token, "measurement_interval:")) {
-            greenhouse_config.measurement_interval_ms = atoi(token + 21);
-        }
-        else if (strstr(token, "fan_higher_threshold:")) {
-            greenhouse_config.fan_temp_higher_threshold_C = atof(token + 21);
-        }
-        else if (strstr(token, "fan_lower_threshold:")) {
-            greenhouse_config.fan_temp_lower_threshold_C = atof(token + 20);
-        }
-        else if (strstr(token, "pump_threshold:")) {
-            greenhouse_config.pump_soilmoist_lower_threshold_pct = atof(token + 15);
-        }
-        else if (strstr(token, "growlight_threshold:")) {
-            greenhouse_config.growlight_light_threshold_pct = atof(token + 20);
-        }   
-        else if (strstr(token, "growlight_override:1")) {
-            greenhouse_config.growlight_override = true;
-        }
-        else if (strstr(token, "growlight_override:0")) {
-            greenhouse_config.growlight_override = false;
-        }
-        else if (strstr(token, "growlight:1")) {
-            greenhouse_config.growlight_override_state = true;
-            greenhouse_config.growlight_override = true;
-        }
-        else if (strstr(token, "growlight:0")) {
-            greenhouse_config.growlight_override_state = false;
-            greenhouse_config.growlight_override = true;
-        }
-        else if (strstr(token, "fan_override:1")) {
-            greenhouse_config.fan_override = true;
-        }
-        else if (strstr(token, "fan_override:0")) {
-            greenhouse_config.fan_override = false;
-        }
-        else if (strstr(token, "fan:1")) {
-            greenhouse_config.fan_override_state = true;
-            greenhouse_config.fan_override = true;
-        }
-        else if (strstr(token, "fan:0")) {
-            greenhouse_config.fan_override_state = false;
-            greenhouse_config.fan_override = true;
-        }
-        else if (strstr(token, "pump_override:1")) {
-            greenhouse_config.pump_override = true;
-        }
-        else if (strstr(token, "pump_override:0")) {
-            greenhouse_config.pump_override = false;
-        }
-        else if (strstr(token, "pump:1")) {
-            greenhouse_config.pump_override_state = true;
-            greenhouse_config.pump_override = true;
-        }
-        else if (strstr(token, "pump:0")) {
-            greenhouse_config.pump_override_state = false;
-            greenhouse_config.pump_override = true;
-        }
-        else if (strstr(token, "parameter:default")) {
-            reset_to_default_config();
-        }
-        token = strtok(NULL, ",");
-    }
-
-    greenhouse_config.mqtt_trigger = true;
-    
-    ESP_LOGI(TAG, "=== NEW GREENHOUSE CONFIG ===");
-    ESP_LOGI(TAG, "Interval: %lu ms", 
-             greenhouse_config.measurement_interval_ms);
-    ESP_LOGI(TAG, "Fan temp thres: %.1f°C <-> %.1f°C (override: %s, state: %s)", 
-             greenhouse_config.fan_temp_lower_threshold_C,
-             greenhouse_config.fan_temp_higher_threshold_C,
-             greenhouse_config.fan_override ? "ON" : "OFF",
-             greenhouse_config.fan_override_state ? "ON" : "OFF");
-    ESP_LOGI(TAG, "Pump soilm. thres: %.1f%% (override: %s, state: %s)", 
-             greenhouse_config.pump_soilmoist_lower_threshold_pct,
-             greenhouse_config.pump_override ? "ON" : "OFF",
-             greenhouse_config.pump_override_state ? "ON" : "OFF");
-    ESP_LOGI(TAG, "Growlight light thres: %.1f%% (override: %s, state: %s)", 
-             greenhouse_config.growlight_light_threshold_pct,
-             greenhouse_config.growlight_override ? "ON" : "OFF",
-             greenhouse_config.growlight_override_state ? "ON" : "OFF");
-    
-    free(json);
 }

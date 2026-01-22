@@ -13,8 +13,4 @@
 #define LDR_ADC_CHANNEL           ADC_CHANNEL_7    // GPIO35
 #define LDR_ADC_UNIT              ADC_UNIT_1
 
-#define I2C_MASTER_SCL_IO GPIO_NUM_22 /*!< gpio number for I2C master clock */
-#define I2C_MASTER_SDA_IO GPIO_NUM_21 /*!< gpio number for I2C master data  */
-#define I2C_MASTER_NUM I2C_NUM_0      /*!< I2C port number for master dev */
-
 

@@ -21,10 +21,6 @@
 #define TAG "AUTOMATED_GREENHOUSE"
 #define DISPLAY_INTERVAL_MS 50
 
-// WiFi config
-#define WIFI_SSID "Lackner@mobile"
-#define WIFI_PASS "yvka1961"
-
 static uint32_t last_measurement_time = 0;
 static uint32_t last_display_time = 0;
 
@@ -39,6 +35,8 @@ void take_measurement(measurements_t *measurment)
 
 void app_main(void)
 {   
+    // init config of parameters
+    reset_to_default_config();
     //  Initialize sensors
     ldr_init();
     soil_sensor_init();
@@ -61,7 +59,7 @@ void app_main(void)
     }
 
     // WiFi init
-    esp_err_t ret1 = wifi_init_sta(WIFI_SSID, WIFI_PASS);
+    esp_err_t ret1 = wifi_init_sta(greenhouse_config.wifi_ssid, greenhouse_config.wifi_ssid);
     if (ret1 == ESP_OK) {
         ESP_LOGI(TAG, "WiFi connected successfully");
     } else {
@@ -80,6 +78,9 @@ void app_main(void)
         .relative_humidity = 0,
         .light = 0,
     };
+
+    //init uart task
+    xTaskCreate(uart_config_task, "uart_config", 4096, NULL, 5, NULL);
     
     //stop mqtt libraries to clutter log output
     esp_log_level_set("esp-tls", ESP_LOG_NONE);
@@ -90,19 +91,24 @@ void app_main(void)
     {
         uint32_t now = esp_log_timestamp();
 
-        if (now - last_measurement_time >= greenhouse_config.measurement_interval_ms || greenhouse_config.mqtt_trigger)
+        if (now - last_measurement_time >= greenhouse_config.measurement_interval_s/1000 || greenhouse_config.config_updated)
         {
-            greenhouse_config.mqtt_trigger = false;
+            greenhouse_config.config_updated = false;
             // sensor measurements
             take_measurement(&current_measurements);
 
-            // Publish measurements
+            // connect to new wifi credentials if given
+            if (greenhouse_config.wifi_reconfigure) {
+                wifi_reconfigure(greenhouse_config.wifi_ssid, greenhouse_config.wifi_password);
+                greenhouse_config.wifi_reconfigure = false;
+            }
+            // Connect to wifi if connection was lost
             if(!wifi_is_connected()) {
                 set_red_connection_led(LED_ON);
                 ESP_LOGI(TAG, "Trying reconect to wifi");
                 wifi_reconnect();
             }
-            
+            // Publish measurements
             if (mqtt_is_connected()) {
                 set_red_connection_led(LED_OFF);
                 char buf[16];
@@ -145,6 +151,9 @@ void app_main(void)
             }
 
             // leds
+            if (current_measurements.soil_moisture <= greenhouse_config.pump_soilmoist_threshold_pct && get_green_moisture_led() == LED_BLINKING) {
+                set_green_moisture_led(LED_ON);
+            }
             green_moisture_led_control();
             red_connection_led_control();
 

@@ -104,3 +104,21 @@ esp_err_t wifi_reconnect(void) {
     }
     return ESP_OK;
 }
+
+esp_err_t wifi_reconfigure(const char *new_ssid, const char *new_pass) {
+    // Stop current WiFi
+    esp_wifi_stop();
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    
+    // New config
+    wifi_config_t wifi_config = {0};
+    strncpy((char *)wifi_config.sta.ssid, new_ssid, sizeof(wifi_config.sta.ssid));
+    strncpy((char *)wifi_config.sta.password, new_pass, sizeof(wifi_config.sta.password));
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+    
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+    
+    ESP_LOGI(TAG, "Reconfigured to SSID: %s", new_ssid);
+    return ESP_OK;
+}

@@ -19,7 +19,7 @@
 
 #define TAG "DISPLAY"
 
-#define LCD_PIXEL_CLOCK_HZ     (400 * 1000)
+#define LCD_PIXEL_CLOCK_HZ     (100 * 1000)
 #define PIN_NUM_RST            -1
 #define I2C_HW_ADDR            0x3C // OLED address
 #define LCD_H_RES              128 //Screen width

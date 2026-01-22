@@ -40,6 +40,10 @@ void set_green_moisture_led(led_state state) {
     green_moisture_led_control();
 }
 
+led_state get_green_moisture_led(void) {
+    return green_led_target_state;
+}
+
 void red_connection_led_control() {
     static int64_t last_blink_time = 0; 
     int64_t now;

@@ -14,7 +14,7 @@
 #define TAG "PUMP_CONTROL"
 
 #define PUMP_DURATION_MS 500 // Duration of the pump being on
-#define WATERING_PAUSE_S 60
+#define WATERING_PAUSE_S 10
 
 static gptimer_handle_t gptimer_oneshot = NULL;
 static bool pump_state = false;
@@ -32,7 +32,7 @@ void pump_init(void) {
     gpio_config_t io_conf_pump = {
         .pin_bit_mask = (1ULL << PUMP_GPIO),
         .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE,
     };
@@ -75,11 +75,11 @@ void pump_control(float moisture, greenhouse_config_t greenhouse_config) {
     } else {
         // AUTO mode
         int64_t now = esp_timer_get_time();
-        if (moisture <= greenhouse_config.pump_soilmoist_lower_threshold_pct && (now - last_watering) >= (WATERING_PAUSE_S * 1000)) { 
+        if (moisture <= greenhouse_config.pump_soilmoist_threshold_pct && (now - last_watering) >= (WATERING_PAUSE_S * 1000 * 1000)) { 
             last_watering = esp_timer_get_time();
             pump_state = true;
             gpio_set_level(PUMP_GPIO, !pump_state); //inverse due to relay
-            set_green_moisture_led(LED_ON);  
+            set_green_moisture_led(LED_BLINKING);  
             gptimer_start(gptimer_oneshot);
             
             ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
