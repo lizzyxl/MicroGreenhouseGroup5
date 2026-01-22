@@ -9,6 +9,7 @@
 #include "outputs.h"
 #include "esp_timer.h"
 #include "driver/gptimer.h"
+#include "parameter_config.h"
 
 #define TAG "PUMP_CONTROL"
 
@@ -17,8 +18,6 @@
 
 static gptimer_handle_t gptimer_oneshot = NULL;
 static bool pump_state = false;
-static bool previous_pump_state = false;
-static volatile int64_t last_watering;
 
 static bool IRAM_ATTR oneshot_callback_turn_pump_off(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx) {
     gptimer_stop(timer);
@@ -38,7 +37,7 @@ void pump_init(void) {
         .intr_type = GPIO_INTR_DISABLE,
     };
     gpio_config(&io_conf_pump);
-    gpio_set_level(PUMP_GPIO, 0);
+    gpio_set_level(PUMP_GPIO, 1);
 
     //oneshot timer
     gptimer_config_t oneshot_config = {
@@ -63,19 +62,32 @@ void pump_init(void) {
     ESP_LOGI(TAG, "Pump configured");
 }
 
-void pump_control(float moisture, float soilmoist_threshold_pct) {
-    int64_t now = esp_timer_get_time();
-    if (moisture <= soilmoist_threshold_pct && (last_watering - now) >= (WATERING_PAUSE_S * 1000)) { 
-        last_watering = esp_timer_get_time();
-        gpio_set_level(PUMP_GPIO, 0);
-        set_green_moisture_led(LED_ON);  
-        gptimer_start(gptimer_oneshot);
-        pump_state = true;
-        ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
+void pump_control(float moisture, greenhouse_config_t greenhouse_config) {
+    static bool previous_pump_state = false;
+    static int64_t last_watering = 0;
+    
+    if (greenhouse_config.pump_override) {
+        // MANUAL override mode
+        pump_state = greenhouse_config.pump_override_state;
+        gpio_set_level(PUMP_GPIO, !pump_state);  //inverse due to relay
+        set_green_moisture_led(pump_state ? LED_ON : LED_OFF); 
+        ESP_LOGI(TAG, "Manual override: %s", pump_state ? "ON" : "OFF");
+    } else {
+        // AUTO mode
+        int64_t now = esp_timer_get_time();
+        if (moisture <= greenhouse_config.pump_soilmoist_lower_threshold_pct && (now - last_watering) >= (WATERING_PAUSE_S * 1000)) { 
+            last_watering = esp_timer_get_time();
+            pump_state = true;
+            gpio_set_level(PUMP_GPIO, !pump_state); //inverse due to relay
+            set_green_moisture_led(LED_ON);  
+            gptimer_start(gptimer_oneshot);
+            
+            ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
+        }
+        if (previous_pump_state == true && pump_state == false) {
+            ESP_LOGI(TAG, "PUMP OFF");
+        }
+        previous_pump_state = pump_state;
     }
 
-    if (previous_pump_state == true && pump_state == false) {
-        ESP_LOGI(TAG, "PUMP OFF");
-    }
-    previous_pump_state = pump_state;
 }

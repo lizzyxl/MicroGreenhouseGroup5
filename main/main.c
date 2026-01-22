@@ -17,6 +17,7 @@
 #include "freertos/task.h"
 #include "nvs_flash.h"
 #include "adc.h"
+#include "parameter_config.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define DISPLAY_INTERVAL_MS 100
@@ -24,33 +25,6 @@
 // WiFi config
 #define WIFI_SSID "Lackner@mobile"
 #define WIFI_PASS "yvka1961"
-
-// Config
-#define DEFAULT_MEASUREMENT_INTERVAL_MS 5000
-#define DEFAULT_FAN_TEMP_HIGHER_THRESHOLD 25.0f
-#define DEFAULT_FAN_TEMP_LOWER_THRESHOLD 20.0f
-#define DEFAULT_PUMP_SOILMOIST_LOWER_THRESHOLD 30.0f
-#define DEFAULT_PUMP_SOILMOIST_HIGHER_THRESHOLD 50.0f
-#define DEFAULT_GROWLIGHT_LIGHT_THRESHOLD 50.0f
-
-typedef struct
-{
-    uint32_t measurement_interval_ms;
-    float fan_temp_higher_threshold_C;
-    float fan_temp_lower_threshold_C;
-    float pump_soilmoist_lower_threshold_pct;
-    float growlight_light_threshold_pct;
-} greenhouse_config_t;
-
-const greenhouse_config_t default_config = {
-    .measurement_interval_ms = DEFAULT_MEASUREMENT_INTERVAL_MS,
-    .fan_temp_lower_threshold_C = DEFAULT_FAN_TEMP_LOWER_THRESHOLD,
-    .fan_temp_higher_threshold_C = DEFAULT_FAN_TEMP_HIGHER_THRESHOLD,
-    .pump_soilmoist_lower_threshold_pct = DEFAULT_PUMP_SOILMOIST_LOWER_THRESHOLD,
-    .growlight_light_threshold_pct = DEFAULT_GROWLIGHT_LIGHT_THRESHOLD,
-};
-
-static greenhouse_config_t greenhouse_config = default_config;
 
 static uint32_t last_measurement_time = 0;
 static uint32_t last_display_time = 0;
@@ -62,11 +36,6 @@ void take_measurement(measurements_t *measurment)
     //aht20_read(&measurment->temperature, &measurment->relative_humidity);
 
     ESP_LOGI(TAG, "Measurement taken: temperature: %.2f C, relative humidity: %.2f %%, soil moisture: %.2f %%, light intensity: %.2f %%", measurment->temperature, measurment->relative_humidity, measurment->soil_moisture, measurment->light);
-}
-
-void reset_to_default_config(greenhouse_config_t *config)
-{
-    memcpy(config, &default_config, sizeof(greenhouse_config_t));
 }
 
 void app_main(void)
@@ -155,15 +124,16 @@ void app_main(void)
                 // Light intensity
                 snprintf(buf, sizeof(buf), "%.2f", current_measurements.light);
                 mqtt_publish("greenhouse/light", buf, 1, 0);
+                ESP_LOGI(TAG, "Publishing data to cloud");
                 } else {
                     ESP_LOGW(TAG, "MQTT not connected, skipping publish");
                 }
             }
             
             // actuators
-            fan_control(current_measurements.temperature, greenhouse_config.fan_temp_lower_threshold_C, greenhouse_config.fan_temp_higher_threshold_C);
-            pump_control(current_measurements.soil_moisture, greenhouse_config.pump_soilmoist_lower_threshold_pct);
-            grow_light_control(current_measurements.light, greenhouse_config.growlight_light_threshold_pct);
+            fan_control(current_measurements.temperature, greenhouse_config);
+            pump_control(current_measurements.soil_moisture, greenhouse_config);
+            grow_light_control(current_measurements.light, greenhouse_config);
 
             last_measurement_time = now;
         }

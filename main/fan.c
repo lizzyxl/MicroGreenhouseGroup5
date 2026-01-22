@@ -5,21 +5,27 @@
 #include "freertos/queue.h"
 #include "driver/gpio.h"
 #include "config.h"
+#include "parameter_config.h"
 
 #define TAG "FAN_CONTROL"
 
-void fan_control(float temperature, float temp_lower_treshold, float temp_higher_treshold) {
-    static bool fan_state = false;
-
-    if (temperature >= temp_higher_treshold && !fan_state) {
-        gpio_set_level(FAN_GPIO, 0); // reversed due to relay
-        fan_state = true;
-        ESP_LOGI(TAG, "FAN ON");
-    } else if (temperature <= temp_lower_treshold && fan_state) {
-        gpio_set_level(FAN_GPIO, 1); // reversed due to relay
-        fan_state = false;
-        ESP_LOGI(TAG, "FAN OFF");
+void fan_control(float temperature, greenhouse_config_t greenhouse_config) {
+    static bool fan_state;
+     if (greenhouse_config.fan_override) {
+        // MANUAL override mode
+        fan_state = greenhouse_config.fan_override_state;
+        ESP_LOGI(TAG, "Manual override: %s", fan_state ? "ON" : "OFF");
+    } else {
+        // AUTO mode
+        if (temperature >= greenhouse_config.fan_temp_higher_threshold_C && !fan_state) {
+            fan_state = true;
+            ESP_LOGI(TAG, "FAN ON");
+        } else if (temperature <= greenhouse_config.fan_temp_lower_threshold_C && fan_state) {
+            fan_state = false;
+            ESP_LOGI(TAG, "FAN OFF");
+        }
     }
+    gpio_set_level(FAN_GPIO, !fan_state); //inverse due to relay
 }
 
 void fan_init(void) {

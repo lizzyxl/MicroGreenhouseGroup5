@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
+#include "parameter_config.h"
 
 void fan_init(void);
-void fan_control(float temperature, float temp_higher_treshold, float temp_lower_treshold);
+void fan_control(float temperature, greenhouse_config_t greenhouse_config);
 
 #endif
