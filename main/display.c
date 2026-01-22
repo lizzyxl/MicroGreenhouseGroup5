@@ -15,10 +15,10 @@
 #include "display.h"
 #include "utils.h"
 #include "config.h"
+#include "i2c_init.h"
 
 #define TAG "DISPLAY"
 
-#define I2C_BUS_PORT           0
 #define LCD_PIXEL_CLOCK_HZ     (400 * 1000)
 #define PIN_NUM_RST            -1
 #define I2C_HW_ADDR            0x3C // OLED address
@@ -90,16 +90,8 @@ static void lvgl_task(void *arg) {
 }
 
 void greenhouse_display_init(void) {
-    i2c_master_bus_handle_t i2c_bus = NULL;
-    i2c_master_bus_config_t bus_config = {
-        .clk_source = I2C_CLK_SRC_DEFAULT,
-        .glitch_ignore_cnt = 7,
-        .i2c_port = I2C_BUS_PORT,
-        .sda_io_num = PIN_NUM_SDA,
-        .scl_io_num = PIN_NUM_SCL,
-        .flags.enable_internal_pullup = true,
-    };
-    ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus));
+    i2c_bus_init();
+    i2c_master_bus_handle_t i2c_bus = i2c_bus_get_handle();
 
     esp_lcd_panel_io_i2c_config_t io_config = {
         .dev_addr = I2C_HW_ADDR,

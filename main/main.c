@@ -16,11 +16,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
-#include "adc.h"
 #include "parameter_config.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
-#define DISPLAY_INTERVAL_MS 100
+#define DISPLAY_INTERVAL_MS 50
 
 // WiFi config
 #define WIFI_SSID "Lackner@mobile"
@@ -33,7 +32,7 @@ void take_measurement(measurements_t *measurment)
 {
     measurment->soil_moisture = soil_sensor_read();
     measurment->light = ldr_read_percent();
-    //aht20_read(&measurment->temperature, &measurment->relative_humidity);
+    aht20_read(&measurment->temperature, &measurment->relative_humidity);
 
     ESP_LOGI(TAG, "Measurement taken: temperature: %.2f C, relative humidity: %.2f %%, soil moisture: %.2f %%, light intensity: %.2f %%", measurment->temperature, measurment->relative_humidity, measurment->soil_moisture, measurment->light);
 }
@@ -41,10 +40,9 @@ void take_measurement(measurements_t *measurment)
 void app_main(void)
 {   
     //  Initialize sensors
-    adc_init_all();
     ldr_init();
     soil_sensor_init();
-    //aht20_init();
+    aht20_init();
     // Initialize acctuators
     fan_init();
     pump_init();

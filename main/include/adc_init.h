@@ -1,5 +1,5 @@
-#ifndef ADC_H
-#define ADC_H
+#ifndef ADC_INIT_H
+#define ADC_INIT_H
 
 #include "driver/adc.h"
 #include "driver/gpio.h"

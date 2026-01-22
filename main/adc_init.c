@@ -1,4 +1,4 @@
-#include "adc.h"
+#include "adc_init.h"
 #include "esp_log.h"
 #include "config.h"
 

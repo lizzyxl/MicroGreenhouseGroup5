@@ -5,7 +5,7 @@
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "config.h"
-#include "adc.h"
+#include "adc_init.h"
 
 #define TAG "SOIL_MOISTURE_SENSOR"
 
@@ -18,6 +18,7 @@ static int map_value(int x, int in_min, int in_max, int out_min, int out_max)
 
 void soil_sensor_init(void)
 {
+    adc_init_all();
     adc_cali_line_fitting_config_t cali_config = {
         .unit_id = SOIL_ADC_UNIT,
         .atten = ADC_ATTEN_DB_12,

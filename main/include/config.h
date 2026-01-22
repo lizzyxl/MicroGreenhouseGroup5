@@ -1,5 +1,6 @@
 #define PIN_NUM_SDA               21 // SDA GPIO
 #define PIN_NUM_SCL               22 // SCL GPIO
+#define I2C_BUS_PORT              0
 #define RED_WIFI_LED              GPIO_NUM_18
 #define MOISTURE_LED              GPIO_NUM_19
 #define BUTTON_PIN_WHITE          GPIO_NUM_13

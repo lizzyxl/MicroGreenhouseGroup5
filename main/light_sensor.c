@@ -4,7 +4,7 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_log.h"
-#include "adc.h"
+#include "adc_init.h"
 
 #define TAG "LIGHT_SENSOR"
 
@@ -14,6 +14,7 @@ static bool cali_enabled = false;
 // Initialize the LDR sensor
 void ldr_init(void)
 {
+    adc_init_all();
     // Configure calibration (maps raw ADC values to voltage)
     adc_cali_line_fitting_config_t cali_config = {
         .unit_id = LDR_ADC_UNIT,

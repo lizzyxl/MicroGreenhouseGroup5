@@ -1,11 +1,9 @@
 #ifndef TEMP_HUM_SENSOR_H
 #define TEMP_HUM_SENSOR_H
 
-#define I2C_MASTER_FREQ_HZ 100000     /*!< I2C master clock frequency */
+#include "esp_check.h"
 
-#include "i2c_bus.h"  
-
-void aht20_init();
-void aht20_read(float *temperature, float *humidity);
+esp_err_t aht20_init(void);
+esp_err_t aht20_read(float *temp, float *humidity);
 
 #endif
