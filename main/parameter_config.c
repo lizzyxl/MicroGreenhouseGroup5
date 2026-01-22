@@ -20,6 +20,7 @@ greenhouse_config_t greenhouse_config  = {
     .pump_override_state = false,
     .fan_override = false,
     .fan_override_state = false,
+    .mqtt_trigger = false,
 };
 
 void reset_to_default_config(void) {
@@ -34,4 +35,5 @@ void reset_to_default_config(void) {
     greenhouse_config.pump_override_state = false;
     greenhouse_config.fan_override = false;
     greenhouse_config.fan_override_state = false;
+    greenhouse_config.mqtt_trigger = true;
 }

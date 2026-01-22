@@ -16,6 +16,7 @@ typedef struct {
     bool pump_override_state;
     bool fan_override;
     bool fan_override_state;
+    bool mqtt_trigger;
 } greenhouse_config_t;
 
 extern greenhouse_config_t greenhouse_config;

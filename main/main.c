@@ -90,9 +90,9 @@ void app_main(void)
     {
         uint32_t now = esp_log_timestamp();
 
-        if (now - last_measurement_time >= greenhouse_config.measurement_interval_ms)
+        if (now - last_measurement_time >= greenhouse_config.measurement_interval_ms || greenhouse_config.mqtt_trigger)
         {
-
+            greenhouse_config.mqtt_trigger = false;
             // sensor measurements
             take_measurement(&current_measurements);
 

@@ -173,6 +173,8 @@ void parse_mqtt_config(const char *data, int len) {
         }
         token = strtok(NULL, ",");
     }
+
+    greenhouse_config.mqtt_trigger = true;
     
     ESP_LOGI(TAG, "=== NEW GREENHOUSE CONFIG ===");
     ESP_LOGI(TAG, "Interval: %lu ms", 
