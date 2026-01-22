@@ -82,6 +82,11 @@ void app_main(void)
         .relative_humidity = 0,
         .light = 0,
     };
+    
+    //stop mqtt libraries to clutter log output
+    esp_log_level_set("esp-tls", ESP_LOG_NONE);
+    esp_log_level_set("mqtt_client", ESP_LOG_NONE);
+    esp_log_level_set("transport_base", ESP_LOG_NONE);
 
     while (1)
     {
@@ -95,18 +100,13 @@ void app_main(void)
 
             // Publish measurements
             if(!wifi_is_connected()) {
+                set_red_connection_led(LED_ON);
                 ESP_LOGI(TAG, "Trying reconect to wifi");
-                ESP_ERROR_CHECK(wifi_reconnect());
-                if (ret1 == ESP_OK) {
-                    ESP_LOGI(TAG, "WiFi connected successfully");
-                    set_red_connection_led(LED_OFF);
-                } else {
-                    ESP_LOGE(TAG, "WiFi connection FAILED (error: %s)", esp_err_to_name(ret));
-                    set_red_connection_led(LED_ON);
-                }
+                wifi_reconnect();
             }
-            if (wifi_is_connected()) {
-                if (mqtt_is_connected()) {
+            
+            if (mqtt_is_connected()) {
+                set_red_connection_led(LED_OFF);
                 char buf[16];
 
                 // publish moisture percentage
@@ -126,8 +126,7 @@ void app_main(void)
                 mqtt_publish("greenhouse/light", buf, 1, 0);
                 ESP_LOGI(TAG, "Publishing data to cloud");
                 } else {
-                    ESP_LOGW(TAG, "MQTT not connected, skipping publish");
-                }
+                ESP_LOGW(TAG, "MQTT not connected, skipping publish");
             }
             
             // actuators

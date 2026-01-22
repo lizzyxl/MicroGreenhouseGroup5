@@ -95,5 +95,12 @@ bool wifi_is_connected(void)
 }
 
 esp_err_t wifi_reconnect(void) {
-    return esp_wifi_connect();
+    if (wifi_is_connected()) {
+        return ESP_OK;
+    } 
+    esp_err_t ret = esp_wifi_connect();
+    if (ret != ESP_OK && ret != ESP_ERR_WIFI_CONN) {
+        return ret;
+    }
+    return ESP_OK;
 }
