@@ -8,12 +8,12 @@
 #define TAG "CONFIG_HANDLER"
 
 #define DEFAULT_MEASUREMENT_INTERVAL_S 10
-#define DEFAULT_FAN_TEMP_HIGHER_THRESHOLD 25.0f
-#define DEFAULT_FAN_TEMP_LOWER_THRESHOLD 23.0f
+#define DEFAULT_FAN_TEMP_HIGHER_THRESHOLD 23.0f
+#define DEFAULT_FAN_TEMP_LOWER_THRESHOLD 22.0f
 #define DEFAULT_FAN_HUM_HIGHER_THRESHOLD 70.0f
 #define DEFAULT_FAN_HUM_LOWER_THRESHOLD 65.0f
 #define DEFAULT_PUMP_SOILMOIST_THRESHOLD 25.0f
-#define DEFAULT_GROWLIGHT_LIGHT_THRESHOLD 40.0f
+#define DEFAULT_GROWLIGHT_LIGHT_THRESHOLD 50.0f
 #define DEFAULT_WIFI_SSID "Lackner@mobile"
 #define DEFAULT_WIFI_PASS "yvka1961"
 
@@ -71,7 +71,7 @@ void parse_json_to_config(const char *data, int len) {
     // parse and validate fields
     cJSON *field;
     
-    // Measurement interval (500-60000ms)
+    // Measurement interval (1s-24h)
     if ((field = cJSON_GetObjectItem(root, "measurement_interval_s"))) {
         int val = field->valueint;
         if (val >= 1 && val <= 86400) {

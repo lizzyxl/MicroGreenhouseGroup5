@@ -14,7 +14,7 @@
 #define TAG "PUMP_CONTROL"
 
 #define PUMP_DURATION_MS 500 // Duration of the pump being on
-#define WATERING_PAUSE_S 10
+#define WATERING_PAUSE_S 120
 
 static gptimer_handle_t gptimer_oneshot = NULL;
 static bool pump_state = false;
