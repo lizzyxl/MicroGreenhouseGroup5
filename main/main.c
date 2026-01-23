@@ -170,11 +170,11 @@ void app_main(void)
             }
 
             // leds
-            if (current_measurements.soil_moisture <= greenhouse_config.pump_soilmoist_threshold_pct && get_green_moisture_led() == LED_BLINKING) {
+            if (current_measurements.soil_moisture <= greenhouse_config.pump_soilmoist_threshold_pct) {
                 set_green_moisture_led(LED_ON);
+            } else {
+                set_green_moisture_led(LED_OFF);
             }
-            green_moisture_led_control();
-            red_connection_led_control();
 
             //draw display
             display_draw(&current_measurements, get_white_button_pressed());

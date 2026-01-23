@@ -79,7 +79,6 @@ void pump_control(float moisture, greenhouse_config_t greenhouse_config) {
             last_watering = esp_timer_get_time();
             pump_state = true;
             gpio_set_level(PUMP_GPIO, !pump_state); //inverse due to relay
-            set_green_moisture_led(LED_BLINKING);  
             gptimer_start(gptimer_oneshot);
             
             ESP_LOGI(TAG, "PUMP ON (Moisture below threshold)");
