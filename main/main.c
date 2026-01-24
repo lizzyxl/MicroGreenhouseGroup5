@@ -182,6 +182,6 @@ void app_main(void)
             last_display_time = now;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }

@@ -40,6 +40,13 @@ static esp_timer_handle_t lvgl_tick_timer;
 #define GAME_PANEL_HEIGHT 48
 #define MAX_SCREENS 4
 
+static i2c_master_bus_handle_t i2c_bus;
+
+static bool display_ok = true;
+static uint32_t last_error_ms = 0;
+#define RETRY_INTERVAL_MS 1100
+static TaskHandle_t monitor_task_handle = NULL;
+
 // lvgl handles
 static lv_obj_t *display_screen = NULL;
 static lv_obj_t *blue_panel = NULL;
@@ -52,12 +59,91 @@ static bool notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t io_panel, esp_lcd_
     return false;
 }
 
+static esp_err_t try_reinit_display(void) {
+    // First, probe if device ACKs
+    esp_err_t ret = i2c_master_probe(i2c_bus, I2C_HW_ADDR, 100 / portTICK_PERIOD_MS);
+    if (ret != ESP_OK) {
+        return ESP_FAIL;
+    }
+
+    // Delete old handles safely
+    if (panel_handle) {
+        esp_lcd_panel_del(panel_handle);
+        panel_handle = NULL;
+    }
+    if (io_handle) {
+        esp_lcd_panel_io_del(io_handle);
+        io_handle = NULL;
+    }
+
+    // Recreate IO + panel (same config as init)
+    esp_lcd_panel_io_i2c_config_t io_config = {
+        .dev_addr = I2C_HW_ADDR,
+        .scl_speed_hz = 100000,
+        .control_phase_bytes = 1,
+        .lcd_cmd_bits = LCD_CMD_BITS,
+        .lcd_param_bits = LCD_PARAM_BITS,
+        .dc_bit_offset = 6,
+    };
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
+
+    esp_lcd_panel_dev_config_t panel_config = {
+        .bits_per_pixel = 1,
+        .reset_gpio_num = PIN_NUM_RST,
+    };
+    esp_lcd_panel_ssd1306_config_t ssd1306_config = {
+        .height = LCD_V_RES,
+    };
+    panel_config.vendor_config = &ssd1306_config;
+    ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io_handle, &panel_config, &panel_handle));
+
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+
+    // Update LVGL display user data
+    lv_display_set_user_data(greenhouse_display, panel_handle);
+
+    // Re-register event callbacks
+    const esp_lcd_panel_io_callbacks_t cbs = {
+        .on_color_trans_done = notify_lvgl_flush_ready,
+    };
+    esp_lcd_panel_io_register_event_callbacks(io_handle, &cbs, greenhouse_display);
+
+    return ESP_OK;
+}
+
+static void display_monitor_task(void *arg) {
+    while (1) {
+        if (!display_ok) {
+            uint32_t now_ms = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
+            if (now_ms - last_error_ms > RETRY_INTERVAL_MS) {
+                ESP_LOGW(TAG, "Display disconected. Retrying display init...");
+                if (try_reinit_display() == ESP_OK) {
+                    display_ok = true;
+                    ESP_LOGI(TAG, "Display reconnected!");
+                } else {
+                    last_error_ms = now_ms;
+                }
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(250));
+    }
+}
+
 static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
     esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t)lv_display_get_user_data(disp);
+
+    if (!display_ok || !panel_handle) {
+        lv_disp_flush_ready(disp);  // Tell LVGL done, even if offline
+        return;
+    }
     
     px_map += LVGL_PALETTE_SIZE;
     uint16_t hor_res = lv_display_get_physical_horizontal_resolution(disp);
     int x1 = area->x1, x2 = area->x2, y1 = area->y1, y2 = area->y2;
+
+    memset(oled_buffer, 0, sizeof(oled_buffer));
 
     for (int y = y1; y <= y2; y++) {
         for (int x = x1; x <= x2; x++) {
@@ -70,7 +156,15 @@ static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px
             }
         }
     }
-    esp_lcd_panel_draw_bitmap(panel_handle, x1, y1, x2 + 1, y2 + 1, oled_buffer);
+
+    lv_disp_flush_ready(disp);
+
+    esp_err_t err = esp_lcd_panel_draw_bitmap(panel_handle, x1, y1, x2 + 1, y2 + 1, oled_buffer);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "draw_bitmap failed: %s", esp_err_to_name(err));
+        display_ok = false;
+        last_error_ms = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
+    }
 }
 
 static void increase_lvgl_tick(void *arg) {
@@ -91,7 +185,7 @@ static void lvgl_task(void *arg) {
 
 void greenhouse_display_init(void) {
     i2c_bus_init();
-    i2c_master_bus_handle_t i2c_bus = i2c_bus_get_handle();
+    i2c_bus = i2c_bus_get_handle();
 
     esp_lcd_panel_io_i2c_config_t io_config = {
         .dev_addr = I2C_HW_ADDR,
@@ -142,6 +236,7 @@ void greenhouse_display_init(void) {
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000));
 
+    xTaskCreate(display_monitor_task, "disp_monitor", 2048, NULL, 1, &monitor_task_handle);
     xTaskCreate(lvgl_task, "LVGL", 4096, NULL, 2, NULL);
 }
 
