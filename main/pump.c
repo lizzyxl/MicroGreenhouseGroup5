@@ -13,8 +13,8 @@
 
 #define TAG "PUMP_CONTROL"
 
-#define PUMP_DURATION_MS 500 // Duration of the pump being on
-#define WATERING_PAUSE_S 120
+#define PUMP_DURATION_MS 1000 // Duration of the pump being on
+#define WATERING_PAUSE_S 60
 
 static bool pump_state = false;
 
