@@ -17,7 +17,7 @@ The project also aims to provide:
 - A clear structure for collaborative development
 
 ## MQTT/UART key value pairs
-
+```text
 "measurement_interval_s":int_value //sets time in seconds between each measurement cycle
 "fan_temp_lower_threshold_C":float_value //set threshold when the fan should turn off again in C
 "fan_temp_higher_threshold_C":float_value //set threshold when the fan should turn on in C
@@ -35,42 +35,9 @@ The project also aims to provide:
 "wifi_ssid":char_string //sets wifi name
 "wifi_password":char_string // sets wifi password
 // if one of these values is updated a measurement is executed imidiately
----
-
-## Project Structure
-
-This document describes the folder and file organization for the **MicroGreenhouse** ESP-IDF project.
-
-```text
-MicroGreenhouseGroup5/
-├── CMakeLists.txt             # Top-level CMake build configuration
-├── main/
-│   ├── CMakeLists.txt         # CMake configuration for the main application
-│   └── main.c                 # Entry point for the project
-├── components/                # Folder for all sensor/actuator components
-│   ├── temp_sensor/           # Temperature sensor component
-│   │   ├── temp_sensor.c      # Implementation
-│   │   ├── temp_sensor.h      # Public interface
-│   │   └── CMakeLists.txt     # Component build instructions
-│   ├── humidity_sensor/       # Humidity sensor component
-│   │   ├── humidity_sensor.c
-│   │   ├── humidity_sensor.h
-│   │   └── CMakeLists.txt
-│   ├── light_sensor/          # Light sensor component
-│   │   ├── light_sensor.c
-│   │   ├── light_sensor.h
-│   │   └── CMakeLists.txt
-│   ├── fan_actuator/          # Fan actuator component
-│   │   ├── fan_actuator.c
-│   │   ├── fan_actuator.h
-│   │   └── CMakeLists.txt
-│   └── water_pump/            # Water pump actuator component
-│       ├── water_pump.c
-│       ├── water_pump.h
-│       └── CMakeLists.txt
-└── README.md                  # Project documentation
+// setting a value eg. with {"fan":true} automatically turns override mode on
 ```
-
+---
 
 ## How to use this project
 
@@ -94,17 +61,3 @@ idf.py build
 idf.py flash
 idf.py monitor
 ```
-
-4. Develop new components by creating folders under `/components`.
-
-### Guidelines for adding Components
-1. Create new folder under `components/` for your sensor or actuator.
-2. Include the following files:
-
-- `component_name.c` -> Implementation
-- `component_name.h` -> Public interface
-- `CMakeLists.txt` -> Registers the component with ESP-IDF
-
-3. Test your component independently before integrating into `main.c`
-4. Follow consistent naming conventions (e.q., `sensor_<name>` or `actuator_<name>`)
-
