@@ -36,9 +36,13 @@
 #include "freertos/task.h"
 #include "nvs_flash.h"
 #include "parameter_config.h"
+#include "server.h"
+#include "esp_http_server.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define DISPLAY_INTERVAL_MS 50
+
+#define USE_DISPLAY false
 
 static uint32_t last_measurement_time = 0;
 static uint32_t last_display_time = 0;
@@ -65,7 +69,9 @@ void app_main(void)
     pump_init();
     grow_light_init();
     // Initialize user Interface
-    greenhouse_display_init();
+    if (USE_DISPLAY) {
+        greenhouse_display_init();
+    }
     inputs_init();
     outputs_init();
 
@@ -97,6 +103,10 @@ void app_main(void)
         .relative_humidity = 0,
         .light = 0,
     };
+
+    // server init
+    ESP_LOGI(TAG, "Starting http server");
+    http_server_start(&greenhouse_config, &current_measurements);
 
     //init uart task
     xTaskCreate(uart_config_task, "uart_config", 4096, NULL, 5, NULL);
@@ -177,8 +187,9 @@ void app_main(void)
             }
 
             //draw display
-            display_draw(&current_measurements, get_white_button_pressed());
-            
+            if (USE_DISPLAY) {
+                display_draw(&current_measurements, get_white_button_pressed());
+            }   
             last_display_time = now;
         }
 

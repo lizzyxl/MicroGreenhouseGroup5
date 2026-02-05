@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌱 Greenhouse Monitor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px;
+            color: white;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .readings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 800px; width: 100%; }
+        .reading-card { 
+            background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(10px); 
+            border-radius: 20px; 
+            padding: 25px; 
+            text-align: center; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .reading-card:hover { transform: translateY(-5px); }
+        .reading-value { font-size: 2.5em; font-weight: bold; margin: 10px 0; }
+        .reading-label { font-size: 1.1em; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 Greenhouse Monitor</h1>
+        <div>Live sensor data</div>
+    </div>
+    
+    <div class="readings">
+        <div class="reading-card">
+            <div class="reading-value" id="temp">--°C</div>
+            <div class="reading-label">Temperature</div>
+        </div>
+        <div class="reading-card">
+            <div class="reading-value" id="hum">--%</div>
+            <div class="reading-label">Humidity</div>
+        </div>
+        <div class="reading-card">
+            <div class="reading-value" id="soil">--%</div>
+            <div class="reading-label">Soil Moisture</div>
+        </div>
+        <div class="reading-card">
+            <div class="reading-value" id="light">--%</div>
+            <div class="reading-label">Light Intensity</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <button id="fan-btn" onclick="cycleFan()" style="padding: 15px 25px; font-size: 1.1em; background: #2196F3; color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            Fan <span id="fan-state">AUTO</span>
+        </button>
+        <button id="light-btn" onclick="cycleLight()" style="padding: 15px 25px; font-size: 1.1em; background: #2196F3; color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            Growlight <span id="light-state">AUTO</span>
+        </button>
+    </div>
+
+    <script>
+        // Update data on homepage
+        async function updateReadings() {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+                document.getElementById('temp').textContent = data.temperature_C.toFixed(1) + '°C';
+                document.getElementById('hum').textContent = data.relative_humidity_pct.toFixed(1) + '%';
+                document.getElementById('soil').textContent = data.soil_moisture_pct.toFixed(1) + '%';
+                document.getElementById('light').textContent = data.light_intensity_pct.toFixed(1) + '%';
+            } catch(e) { console.error('Update failed:', e); }
+        }
+
+        // Button funcitons
+        let fanState = 0, lightState = 0;  // 0=auto, 1=on, 2=off
+
+        const stateNames = ['AUTO', 'ON', 'OFF'];
+        const Colors = ['#2196F3', '#4CAF50', '#F44336'];  // blue, green, red
+
+        async function cycleFan() {
+            fanState = (fanState + 1) % 3;
+            document.getElementById('fan-state').textContent = stateNames[fanState];
+            document.getElementById('fan-btn').style.background = Colors[fanState];
+            
+            if (fanState === 0) {
+                await fetch('/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        fan_override: false
+                    })
+                });
+            } else {
+                await fetch('/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        fan_override: true,
+                        fan: fanState === 1
+                    })
+                });
+            }
+        }
+        async function cycleLight() {
+            lightState = (lightState + 1) % 3;
+            document.getElementById('light-state').textContent = stateNames[lightState];
+            document.getElementById('light-btn').style.background = Colors[lightState];
+            if (lightState === 0) {
+                await fetch('/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        growlight_override: false
+                    })
+                });
+            } else {
+            await fetch('/config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    growlight_override: true,
+                    growlight: lightState === 1  // true=ON (1), false=OFF (2)
+                })
+                });
+            }
+        }
+        setInterval(updateReadings, 3000);
+        updateReadings();
+    </script>
+</body>
+</html>
