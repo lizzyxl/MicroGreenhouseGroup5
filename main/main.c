@@ -38,6 +38,7 @@
 #include "parameter_config.h"
 #include "server.h"
 #include "esp_http_server.h"
+#include "analog_gauge.h"
 
 #define TAG "AUTOMATED_GREENHOUSE"
 #define DISPLAY_INTERVAL_MS 50
@@ -68,6 +69,7 @@ void app_main(void)
     fan_init();
     pump_init();
     grow_light_init();
+    analog_gauge_init();
     // Initialize user Interface
     if (USE_DISPLAY) {
         greenhouse_display_init();
@@ -166,6 +168,8 @@ void app_main(void)
             fan_control(current_measurements.temperature, current_measurements.relative_humidity, greenhouse_config);
             pump_control(current_measurements.soil_moisture, greenhouse_config);
             grow_light_control(current_measurements.light, greenhouse_config);
+
+            analog_gauge_control(current_measurements.light);
 
             last_measurement_time = now;
         }

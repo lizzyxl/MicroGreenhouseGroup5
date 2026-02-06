@@ -8,6 +8,7 @@
 #define GROW_LIGHT_GPIO           GPIO_NUM_25
 #define FAN_GPIO                  GPIO_NUM_26
 #define PUMP_GPIO                 GPIO_NUM_15
+#define ANALOG_GAUGE_GPIO         GPIO_NUM_23
 #define SOIL_ADC_CHANNEL          ADC1_CHANNEL_4   // GPIO32
 #define SOIL_ADC_UNIT             ADC_UNIT_1
 #define LDR_ADC_CHANNEL           ADC_CHANNEL_7    // GPIO35
