@@ -80,7 +80,7 @@
             } catch(e) { console.error('Update failed:', e); }
         }
 
-        // Button funcitons
+        // Button functions
         let fanState = 0, lightState = 0;  // 0=auto, 1=on, 2=off
 
         const stateNames = ['AUTO', 'ON', 'OFF'];
@@ -128,7 +128,7 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     growlight_override: true,
-                    growlight: lightState === 1  // true=ON (1), false=OFF (2)
+                    growlight: lightState === 1
                 })
                 });
             }

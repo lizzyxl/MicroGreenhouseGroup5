@@ -9,6 +9,7 @@ static server_context_t server_ctx;
 
 // GET data
 esp_err_t data_get_handler(httpd_req_t *req) {
+    // response with json formated measurements
     server_context_t *ctx = (server_context_t*)req->user_ctx;
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "temperature_C", ctx->measurements->temperature);
@@ -18,7 +19,6 @@ esp_err_t data_get_handler(httpd_req_t *req) {
     
     char *json_str = cJSON_Print(root);
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     
     esp_err_t ret = httpd_resp_send(req, json_str, strlen(json_str));
     free(json_str);
@@ -28,6 +28,7 @@ esp_err_t data_get_handler(httpd_req_t *req) {
 
 // GET config
 esp_err_t config_get_handler(httpd_req_t *req) {
+    // responds with json formated config
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "measurement_interval_s", greenhouse_config.measurement_interval_s);
     cJSON_AddNumberToObject(root, "fan_temp_lower_threshold_C", greenhouse_config.fan_temp_lower_threshold_C);
@@ -36,16 +37,16 @@ esp_err_t config_get_handler(httpd_req_t *req) {
     cJSON_AddNumberToObject(root, "fan_hum_higher_threshold_pct", greenhouse_config.fan_hum_higher_threshold_pct);
     cJSON_AddNumberToObject(root, "pump_soilmoist_threshold_pct", greenhouse_config.pump_soilmoist_threshold_pct);
     cJSON_AddNumberToObject(root, "growlight_light_threshold_pct", greenhouse_config.growlight_light_threshold_pct);
-    cJSON_AddNumberToObject(root, "growlight_override", greenhouse_config.growlight_override);
-    cJSON_AddNumberToObject(root, "growlight_override_state", greenhouse_config.growlight_override_state);
-    cJSON_AddNumberToObject(root, "pump_override", greenhouse_config.pump_override);
-    cJSON_AddNumberToObject(root, "pump_override_state", greenhouse_config.pump_override_state);
-    cJSON_AddNumberToObject(root, "fan_override", greenhouse_config.fan_override);
-    cJSON_AddNumberToObject(root, "fan_override_state", greenhouse_config.fan_override_state);
+    cJSON_AddBoolToObject(root, "growlight_override", greenhouse_config.growlight_override);
+    cJSON_AddBoolToObject(root, "growlight_override_state", greenhouse_config.growlight_override_state);
+    cJSON_AddBoolToObject(root, "pump_override", greenhouse_config.pump_override);
+    cJSON_AddBoolToObject(root, "pump_override_state", greenhouse_config.pump_override_state);
+    cJSON_AddBoolToObject(root, "fan_override", greenhouse_config.fan_override);
+    cJSON_AddBoolToObject(root, "fan_override_state", greenhouse_config.fan_override_state);
 
     char *json_str = cJSON_Print(root);
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
     esp_err_t ret = httpd_resp_send(req, json_str, strlen(json_str));
     free(json_str);
     cJSON_Delete(root);
@@ -54,6 +55,7 @@ esp_err_t config_get_handler(httpd_req_t *req) {
 
 // POST config
 esp_err_t config_post_handler(httpd_req_t *req) {
+    // parse received json into config for esp
     char buf[512] = {0};
     int ret = httpd_req_recv(req, buf, sizeof(buf)-1);
 
@@ -72,11 +74,12 @@ esp_err_t config_post_handler(httpd_req_t *req) {
 
 // homepage
 esp_err_t homepage_handler(httpd_req_t *req) {
-    extern const unsigned char index_html_start[] asm("_binary_index_html_start");
+    // show nice hompage with measurements and two buttons to interact with greenhouse (see index.html)
+    extern const unsigned char index_html_start[] asm("_binary_index_html_start"); // creates pointer of the start of the binary of index.html
     extern const unsigned char index_html_end[] asm("_binary_index_html_end");
     
     httpd_resp_set_type(req, "text/html; charset=UTF-8");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache"); // no cache for automatic refresh
     
     size_t html_size = index_html_end - index_html_start;
     return httpd_resp_send(req, (const char *)index_html_start, html_size);
@@ -86,7 +89,7 @@ static const httpd_uri_t uri_homepage = {
     .uri      = "/",
     .method   = HTTP_GET,
     .handler  = homepage_handler,
-    .user_ctx = &server_ctx,
+    .user_ctx = NULL,
 };
 static const httpd_uri_t uri_data = {
     .uri      = "/data",
@@ -108,7 +111,7 @@ static const httpd_uri_t uri_config_post = {
 };
 
 void http_server_start(greenhouse_config_t *greenhouse_config, measurements_t *measurment) {
-
+    //start webserver and register URI handlers
     server_ctx.measurements = measurment;
     server_ctx.config = greenhouse_config;
 
