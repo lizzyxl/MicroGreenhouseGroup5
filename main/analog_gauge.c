@@ -30,7 +30,7 @@ void analog_gauge_init(void) {
         .timer_sel = LEDC_TIMER_0,
         .intr_type = LEDC_INTR_DISABLE,
         .gpio_num = ANALOG_GAUGE_GPIO,
-        .duty = 298,
+        .duty = 494,
         .hpoint = 0
     };
     ledc_channel_config(&ledc_channel);
@@ -52,7 +52,9 @@ Position "0" (1.45 ms pulse) is middle, "90" (～2.4 ms pulse) is all the way to
 
 LEDC 12-BIT Timer Settings:
 Resolution = 12-bit → 4096 steps
-(-90°) 0.5ms/20ms = 2.5% -> Duty 102 
-(0°) 1.45ms/20ms = 7.25% -> Duty 298
-(90°) 2.4ms/20ms = 12% -> Duty 494
+(90° max left) 2.4ms/20ms = 12% -> Duty 494
+(0° middle) 1.45ms/20ms = 7.25% -> Duty 298
+(-90° max right) 0.5ms/20ms = 2.5% -> Duty 102 
+
+
 */
