@@ -111,7 +111,7 @@ static const httpd_uri_t uri_config_post = {
 };
 
 void http_server_start(greenhouse_config_t *greenhouse_config, measurements_t *measurment) {
-    //start webserver and register URI handlers
+    //start webserver and register URI handlersi
     server_ctx.measurements = measurment;
     server_ctx.config = greenhouse_config;
 

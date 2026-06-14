@@ -43,7 +43,7 @@
 #define TAG "AUTOMATED_GREENHOUSE"
 #define DISPLAY_INTERVAL_MS 50
 
-#define USE_DISPLAY false
+#define USE_DISPLAY true
 
 static uint32_t last_measurement_time = 0;
 static uint32_t last_display_time = 0;
